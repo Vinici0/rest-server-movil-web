@@ -1,0 +1,43 @@
+const { comprobarJWT } = require("../helpers/jwt");
+const { io } = require("../index");
+const {
+  usuarioConectado,
+  usuarioDesconectado,
+  grabarMensajeSala,
+} = require("../controllers/socket");
+
+// Mensajes de Sockets
+io.on("connection", (client) => {
+  console.log("Cliente conectado");
+
+  console.log(client.handshake.headers["x-token"]);
+  const [valido, uid] = comprobarJWT(client.handshake.headers["x-token"]);
+
+  // Verificar autenticación
+  if (!valido) client.disconnect();
+
+  // Cliente autenticado
+  usuarioConectado(uid);
+
+  // Join room
+  client.on("join-room", async (payload) => {
+    const { codigo } = payload;
+    const sala = await Sala.findOne({ codigo });
+    if (sala) {
+      client.join(sala._id);
+      sala.usuarios.push(uid);
+      await sala.save();
+    }
+  });
+
+  // Listen for new messages
+  client.on("mensaje-sala", async (payload) => {
+    const mensaje = await grabarMensajeSala(payload, uid);
+    io.to(payload.codigo).emit("mensaje-sala", mensaje);
+  });
+
+  client.on("disconnect", () => {
+    usuarioDesconectado(uid);
+    console.log("Cliente desconectado");
+  });
+});
