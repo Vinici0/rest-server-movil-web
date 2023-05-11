@@ -161,7 +161,7 @@ const getSalesByUser = async (req, res) => {
       { usuarios: uid },
       { nombre: 1, _id: 1, color: 1 , codigo: 1}
     );
-    const totalUsuarios = await Sala.find({ usuarios: uid }).count();
+    const totalUsuarios = await Sala.find({ usuarios: uid }).countDocuments();
     res.json({
       ok: true,
       salas,

@@ -3,18 +3,27 @@ const Mensaje = require("../models/mensaje");
 const Sala = require("../models/sala");
 
 const usuarioConectado = async (uid = "") => {
+  if (!uid) return null; // verifica si se proporcionó un uid válido
+
   const usuario = await Usuario.findById(uid);
+  if (!usuario) return null; // verifica si se encontró un usuario en la base de datos
+
   usuario.online = true;
   await usuario.save();
   return usuario;
 };
 
 const usuarioDesconectado = async (uid = "") => {
+  if (!uid) return null; // verifica si se proporcionó un uid válido
+
   const usuario = await Usuario.findById(uid);
+  if (!usuario) return null; // verifica si se encontró un usuario en la base de datos
+
   usuario.online = false;
   await usuario.save();
   return usuario;
 };
+
 
 // payload: {
 
