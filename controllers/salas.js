@@ -51,7 +51,7 @@ const crearSala = async (req, res) => {
     sala.usuarios.push(uid);
     await sala.save();
 
-    const salaResponse = _.pick(sala.toObject(), ['usuarios', 'nombre', 'codigo', 'color']);
+    const salaResponse = _.pick(sala.toObject(), [ 'nombre', 'codigo', 'color']);
     salaResponse.uid = uid;
 
     res.json({
@@ -80,12 +80,18 @@ const unirseSala = async (req, res) => {
       });
     }
 
+    //nombre, codigo, color y uid
+    const salaResponse = _.pick(sala.toObject(), [ 'nombre', 'codigo', 'color']);
+    salaResponse.uid = uid;
+
+    // Add user to room
     sala.usuarios.push(uid);
     await sala.save();
+    
 
     res.json({
       ok: true,
-      sala,
+      sala: salaResponse,
     });
   } catch (error) {
     console.log(error);
