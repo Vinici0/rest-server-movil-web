@@ -17,7 +17,7 @@ const PublicacionSchema = Schema({
   usuario: {
     type: Schema.Types.ObjectId,
     ref: "Usuario",
-    required: true,
+    required: true, 
   },
   likes: {
     type: Number,
