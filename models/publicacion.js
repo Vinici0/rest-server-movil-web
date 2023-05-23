@@ -1,36 +1,73 @@
 const { Schema, model } = require("mongoose");
 
-const PublicacionSchema = Schema({
-  titulo: {
-    type: String,
-    required: true,
+const PublicacionSchema = Schema(
+  {
+    titulo: {
+      type: String,
+      required: true,
+    },
+    contenido: {
+      type: String,
+      required: true,
+    },
+
+    color: {
+      type: String,
+      required: true,
+    },
+    ciudad: {
+      type: String,
+      required: true,
+    },
+    barrio: {
+      type: String,
+      required: true,
+    },
+    isPublic: {
+      type: Boolean,
+      default: true,
+    },
+    usuario: {
+      type: Schema.Types.ObjectId,
+      ref: "Usuario",
+      required: true,
+    },
+    likes: {
+      type: Number,
+      default: 0,
+    },
+    //lista de imagenes
+    imagenes: [
+      {
+        type: String,
+      },
+    ],
+    latitud: {
+      type: Number,
+    },
+    longitud: {
+      type: Number,
+    },
+    comentarios: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Comentario",
+      },
+    ],
+    imgAlerta: {
+      type: String,
+      required: true,
+    },
+
+    isLiked: {
+      type: Boolean,
+      default: false,
+    },
   },
-  contenido: {
-    type: String,
-    required: true,
-  },
-  tipo : {
-    type: String,
-    required: true,
-    // enum: ["publicado", "borrador"],
-  },
-  usuario: {
-    type: Schema.Types.ObjectId,
-    ref: "Usuario",
-    required: true, 
-  },
-  likes: {
-    type: Number,
-    default: 0,
-  },
-  img: {
-    type: String,
-  },
-  fechaCreacion: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  {
+    timestamps: true,
+  }
+);
 
 PublicacionSchema.method("toJSON", function () {
   const { __v, _id, ...object } = this.toObject();

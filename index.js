@@ -1,6 +1,7 @@
 const express = require("express");
 const path = require("path");
-const cors = require('cors');
+const cors = require("cors");
+const fileUpload = require('express-fileupload');
 require("dotenv").config();
 
 // DB Config
@@ -8,7 +9,7 @@ require("./database/config").dbConnection();
 
 // App de Express
 const app = express();
-app.use( cors() );
+app.use(cors());
 
 // Lectura y parseo del Body
 app.use(express.json());
@@ -22,11 +23,22 @@ require("./sockets/socket");
 const publicPath = path.resolve(__dirname, "public");
 app.use(express.static(publicPath));
 
+app.use(
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: "/tmp/",
+    createParentPath: true
+  })
+);
+
 // Mis Rutas
 app.use("/api/login", require("./routes/auth"));
 app.use("/api/usuarios", require("./routes/usuarios"));
 app.use("/api/mensajes", require("./routes/mensajes"));
 app.use("/api/salas", require("./routes/salas"));
+app.use("/api/publicacion", require("./routes/publicacion"));
+app.use("/api/comentarios", require("./routes/comentarios"));
+app.use("/api/uploads", require("./routes/uploads"));
 
 server.listen(process.env.PORT, (err) => {
   if (err) throw new Error(err);

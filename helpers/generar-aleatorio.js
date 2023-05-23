@@ -12,13 +12,14 @@ const generarColorAleatorio = () => {
 
   // Generar dos valores hexadecimales aleatorios para cada uno de los tres componentes de color (rojo, verde y azul)
   for (let i = 0; i < 3; i++) {
-    const componente = Math.floor(Math.random() * 256).toString(16).padStart(2, "0");
+    const componente = Math.floor(Math.random() * 256)
+      .toString(16)
+      .padStart(2, "0");
     color += componente;
   }
 
   return color;
-}
-
+};
 
 module.exports = {
   generarCodigoUnico,
