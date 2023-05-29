@@ -26,6 +26,7 @@ const cargarArchivo = async (req, res = response) => {
 const mostrarImagen = async (req, res = response) => {
   const { id, coleccion } = req.params;
 
+  console.log(id, coleccion);
   let modelo;
 
   switch (coleccion) {
@@ -69,7 +70,7 @@ const mostrarImagen = async (req, res = response) => {
 
     console.log(pathImagen);
 
-    if (fs.existsSync(pathImagen)) {
+    if (fs.existsSync(pathImagen)) {//Sirve para verificar si existe el archivo en el path especificado
       return res.sendFile(pathImagen);
     }
   }

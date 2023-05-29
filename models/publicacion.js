@@ -32,10 +32,12 @@ const PublicacionSchema = Schema(
       ref: "Usuario",
       required: true,
     },
-    likes: {
-      type: Number,
-      default: 0,
-    },
+    likes: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Usuario",
+      },
+    ],
     //lista de imagenes
     imagenes: [
       {

@@ -17,6 +17,6 @@ router.get('/:coleccion/:id', [
     validarCampos
 ], mostrarImagen  )
 
-router.get('/imagenes/:coleccion/:id', mostrarAllImagenes  )
+router.get('/imagenes/:coleccion/:id', mostrarImagen  )
 
 module.exports = router;

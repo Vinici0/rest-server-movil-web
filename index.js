@@ -36,7 +36,7 @@ app.use("/api/login", require("./routes/auth"));
 app.use("/api/usuarios", require("./routes/usuarios"));
 app.use("/api/mensajes", require("./routes/mensajes"));
 app.use("/api/salas", require("./routes/salas"));
-app.use("/api/publicacion", require("./routes/publicacion"));
+app.use("/api/publicacion", require("./routes/publicaciones"));
 app.use("/api/comentarios", require("./routes/comentarios"));
 app.use("/api/uploads", require("./routes/uploads"));
 
@@ -45,3 +45,4 @@ server.listen(process.env.PORT, (err) => {
 
   console.log("Servidor corriendo en puerto", process.env.PORT);
 });
+

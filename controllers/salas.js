@@ -221,6 +221,54 @@ const getMensajesSala = async (req, res) => {
   }
 };
 
+//update sala
+const updateSala = async (req, res) => {
+  try {
+    const { salaId } = req.params;
+    const { nombre, codigo, color } = req.body;
+
+
+
+    const sala = await Sala.findByIdAndUpdate(
+      salaId,
+      { nombre, codigo, color },
+      { new: true }
+    );
+
+    res.json({
+      ok: true,
+      sala,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      msg: "Por favor hable con el administrador",
+    });
+  }
+};
+
+
+const deleteSala = async (req, res) => {
+  try {
+    const { salaId } = req.params;
+    const sala = await Sala.findByIdAndDelete(salaId);
+
+    res.json({
+      ok: true,
+      sala,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      msg: "Por favor hable con el administrador",
+    });
+  }
+};
+
+
+
 module.exports = {
   crearSala,
   unirseSala,
@@ -231,4 +279,6 @@ module.exports = {
   getSalesByUser,
   getMensajesBySala,
   getMensajesSala,
+  updateSala,
+  deleteSala
 };

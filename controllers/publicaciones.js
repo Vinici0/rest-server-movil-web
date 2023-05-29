@@ -96,6 +96,8 @@ const guardarListArchivo = async (req, res) => {
   const nombres = [];
   const { titulo, uid } = req.params;
   // console.log(req.params);
+
+  console.log(titulo, uid);
   const archivo = req.files?.archivo;
 
   try {
@@ -148,28 +150,6 @@ const guardarListArchivo = async (req, res) => {
   }
 };
 
-const likePublicacion = async (req, res) => {
-  try {
-    const publicacionId = req.params.id;
-
-    // Verificar si la publicación existe
-    const publicacion = await Publicacion.findById(publicacionId);
-    if (!publicacion) {
-      return res.status(404).json({ error: "Publicación no encontrada" });
-    }
-
-    // Incrementar el contador de likes
-    publicacion.likes += 1;
-    await publicacion.save();
-
-    res.status(200).json({ likes: publicacion.likes });
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ error: "Error al incrementar el contador de likes" });
-  }
-};
 
 const dislikePublicacion = async (req, res) => {
   try {
@@ -195,6 +175,7 @@ const dislikePublicacion = async (req, res) => {
       .json({ error: "Error al decrementar el contador de likes" });
   }
 };
+
 const getPublicacionesEnRadio = async (req, res) => {
   const radio = 1.8603572982599163; // Radio en kilómetros
 
@@ -216,7 +197,7 @@ const getPublicacionesEnRadio = async (req, res) => {
       publicacionesEnRadio = await Publicacion.find({
         latitud: { $exists: true },
         longitud: { $exists: true },
-      }).exec();
+      }).sort({ createdAt: -1 }).exec();
 
       publicacionesEnRadio = publicacionesEnRadio.filter((publicacion) => {
         return usuario.direcciones.some((direccion) => {
@@ -232,6 +213,7 @@ const getPublicacionesEnRadio = async (req, res) => {
       });
     } else {
       // Si el usuario no tiene latitud y longitud en ninguna dirección, obtener todas las publicaciones
+      //ordenadas por fecha de creación
       publicacionesEnRadio = await Publicacion.find().exec();
     }
 
@@ -245,6 +227,134 @@ const getPublicacionesEnRadio = async (req, res) => {
   }
 };
 
+//update publicacion
+const updatePublicacion = async (req, res) => {
+  const { id } = req.params;
+  const { isLiked, likes} = req.body;
+
+  try {
+    const publicacion = await Publicacion.findById(id);
+
+    if (!publicacion) {
+      return res.status(404).json({ mensaje: "Publicacion no encontrada" });
+    }
+
+    const nuevaPublicacion = {
+      isLiked,
+      likes,
+      usuario: req.uid,
+    };
+
+    const publicacionActualizada = await Publicacion.findByIdAndUpdate(
+      id,
+      nuevaPublicacion,
+      { new: true }
+    );
+
+    res.json({
+      ok: true,
+      publicacion: publicacionActualizada,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      mensaje: "Error inesperado",
+    });
+  }
+};
+
+const updatePublicacion2 = async (req, res) => {
+  const { id } = req.params;
+  const { likes} = req.body;
+
+  try {
+    const publicacion = await Publicacion.findById(id);
+
+    if (!publicacion) {
+      return res.status(404).json({ mensaje: "Publicacion no encontrada" });
+    }
+
+    const nuevaPublicacion = {
+      likes,
+      usuario: req.uid,
+    };
+
+    const publicacionActualizada = await Publicacion.findByIdAndUpdate(
+      id,
+      nuevaPublicacion,
+      { new: true }
+    );
+
+    res.json({
+      ok: true,
+      publicacion: publicacionActualizada,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      mensaje: "Error inesperado",
+    });
+  }
+};
+
+const obtenerPublicacionesUsuarioConLikes = async (req, res) => {
+  const usuarioId = req.uid; // ID del usuario obtenido del token de autenticación
+
+  try {
+    const publicaciones = await Publicacion.find({ usuario: usuarioId });
+
+    const publicacionesConLikes = publicaciones.filter(publicacion => publicacion.isLiked);
+
+    res.json({
+      ok: true,
+      publicacionesConLikes,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      msg: "Por favor hable con el administrador",
+    });
+  }
+};
+
+  //update like publicacion
+  const likePublicacion = async (req, res) => {
+    try {
+      const publicacionId = req.params.id;
+      const usuarioId = req.uid;
+  
+      // Verificar si la publicación existe
+      const publicacion = await Publicacion.findById(publicacionId);
+      if (!publicacion) {
+        return res.status(404).json({ error: "Publicación no encontrada" });
+      }
+  
+      // Verificar si el usuario ya ha dado like a la publicación
+      const usuarioYaDioLike = publicacion.likes.includes(usuarioId.toString());
+  
+      if (!usuarioYaDioLike) {
+        // Agregar el ID del usuario a la lista de likes
+        publicacion.likes.push(usuarioId);
+      } else {
+        // Eliminar el ID del usuario de la lista de likes
+        publicacion.likes = publicacion.likes.filter((id) => id.toString() !== usuarioId.toString());
+      }
+  
+      await publicacion.save();
+  
+      res.status(200).json({ publicacion });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error al gestionar el like" });
+    }
+  };
+  
+
+
+
 module.exports = {
   obtenerPublicacionesUsuario,
   guardarPublicacion,
@@ -252,4 +362,7 @@ module.exports = {
   likePublicacion,
   dislikePublicacion,
   guardarListArchivo,
+  updatePublicacion,
+  updatePublicacion2,
+  obtenerPublicacionesUsuarioConLikes,
 };

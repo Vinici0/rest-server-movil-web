@@ -15,6 +15,10 @@ const SalaSchema = Schema(
       type: String,
       required: true,
     },
+    isLike : {
+      type: Boolean,
+      default: false
+    },
     usuarios: [{ type: Schema.Types.ObjectId, ref: "Usuario" }],
     mensajes: [{ type: Schema.Types.ObjectId, ref: "Mensaje" }],
   },
