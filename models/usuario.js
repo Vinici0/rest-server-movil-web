@@ -30,6 +30,10 @@ const UsuarioSchema = Schema({
     type: Boolean,
     default: false,
   },
+  tokenApp: {
+    type: String,
+    default: null,
+  },
 });
 
 UsuarioSchema.method("toJSON", function () {

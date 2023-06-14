@@ -3,14 +3,13 @@ const bcrypt = require("bcryptjs");
 
 const Usuario = require("../models/usuario");
 const { generarJWT } = require("../helpers/jwt");
-const usuario = require("../models/usuario");
 
 const crearUsuario = async (req, res = response) => {
-  const { email, password } = req.body;
+  const { email, password, tokenApp } = req.body;
 
   try {
     const existeEmail = await Usuario.findOne({ email });
-    if (existeEmail) {
+    if (existeEmail) {  
       return res.status(400).json({
         ok: false,
         msg: "El correo ya está registrado",
@@ -22,7 +21,7 @@ const crearUsuario = async (req, res = response) => {
     // Encriptar contraseña
     const salt = bcrypt.genSaltSync();
     usuario.password = bcrypt.hashSync(password, salt);
-
+    usuario.tokenApp = tokenApp;
     await usuario.save();
 
     // Generar mi JWT
@@ -41,11 +40,10 @@ const crearUsuario = async (req, res = response) => {
     });
   }
 };
-
 const login = async (req, res = response) => {
-  const { email, password } = req.body;
+  const { email, password, tokenApp } = req.body;
 
-    console.log(email, password);
+  console.log(email, password);
   try {
     const usuarioDB = await Usuario.findOne({ email });
     if (!usuarioDB) {
@@ -64,6 +62,11 @@ const login = async (req, res = response) => {
       });
     }
 
+    // Actualizar el token de dispositivo si se proporciona
+    if (tokenApp) {
+      await Usuario.findOneAndUpdate({ email }, { tokenApp });
+    }
+
     // Generar el JWT
     const token = await generarJWT(usuarioDB.id);
 
@@ -80,6 +83,7 @@ const login = async (req, res = response) => {
     });
   }
 };
+
 
 const renewToken = async (req, res = response) => {
   const uid = req.uid;

@@ -1,5 +1,5 @@
-const Comentario = require("../models/comentario");
-const Publicacion = require("../models/publicacion");
+
+const {Publicacion, Comentario} = require("../models");
 
 const createComentario = async (req, res) => {
 

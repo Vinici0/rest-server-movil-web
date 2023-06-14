@@ -18,7 +18,6 @@ app.use(express.json());
 const server = require("http").createServer(app);
 module.exports.io = require("socket.io")(server);
 require("./sockets/socket");
-
 // Path público
 const publicPath = path.resolve(__dirname, "public");
 app.use(express.static(publicPath));
@@ -32,13 +31,15 @@ app.use(
 );
 
 // Mis Rutas
-app.use("/api/login", require("./routes/auth"));
-app.use("/api/usuarios", require("./routes/usuarios"));
-app.use("/api/mensajes", require("./routes/mensajes"));
-app.use("/api/salas", require("./routes/salas"));
-app.use("/api/publicacion", require("./routes/publicaciones"));
+app.use("/api/buscar", require("./routes/buscar"));
 app.use("/api/comentarios", require("./routes/comentarios"));
+app.use("/api/login", require("./routes/auth"));
+app.use("/api/mensajes", require("./routes/mensajes"));
+app.use("/api/publicacion", require("./routes/publicaciones"));
+app.use("/api/salas", require("./routes/salas"));
+app.use("/api/ubicaciones", require("./routes/ubicaciones"));
 app.use("/api/uploads", require("./routes/uploads"));
+app.use("/api/usuarios", require("./routes/usuarios"));
 
 server.listen(process.env.PORT, (err) => {
   if (err) throw new Error(err);

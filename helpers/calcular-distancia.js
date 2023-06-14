@@ -1,5 +1,5 @@
 // calcular la distancia entre dos puntos de latitud y longitud
-const  calcularDistancia = (lat1, lon1, lat2, lon2) => {
+const calcularDistancia = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // Radio de la Tierra en kilómetros
 
   const dLat = degToRad(lat2 - lat1);
@@ -16,9 +16,8 @@ const  calcularDistancia = (lat1, lon1, lat2, lon2) => {
 
   const distancia = R * c;
 
-
   return distancia;
-}
+};
 
 // Función para convertir grados a radianes
 function degToRad(deg) {
@@ -26,5 +25,5 @@ function degToRad(deg) {
 }
 
 module.exports = {
-    calcularDistancia,
+  calcularDistancia,
 };

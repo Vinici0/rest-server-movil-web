@@ -1,12 +1,10 @@
-const Usuario = require("../models/usuario");
-const Mensaje = require("../models/mensaje");
-const Sala = require("../models/sala");
+const { Publicacion, Sala, Mensaje, Usuario } = require("../models");
 
 const usuarioConectado = async (uid = "") => {
-  if (!uid) return null; // verifica si se proporcionó un uid válido
+  if (!uid) return null;
 
   const usuario = await Usuario.findById(uid);
-  if (!usuario) return null; // verifica si se encontró un usuario en la base de datos
+  if (!usuario) return null;
 
   usuario.online = true;
   await usuario.save();
@@ -14,16 +12,14 @@ const usuarioConectado = async (uid = "") => {
 };
 
 const usuarioDesconectado = async (uid = "") => {
-  if (!uid) return null; // verifica si se proporcionó un uid válido
+  if (!uid) return null;
 
   const usuario = await Usuario.findById(uid);
-  if (!usuario) return null; // verifica si se encontró un usuario en la base de datos
-
+  if (!usuario) return null; 
   usuario.online = false;
   await usuario.save();
   return usuario;
 };
-
 
 // payload: {
 
@@ -46,34 +42,6 @@ const grabarMensaje = async (payload) => {
   }
 };
 
-// const grabarMensajeSala = async (req, res) => {
-//   try {
-//     const { mensaje, salaId } = req.body;
-//     const usuarioId = req.uid;
-
-//     // Create new message
-//     const newMessage = new Mensaje({ mensaje, usuario: usuarioId });
-//     await newMessage.save();
-
-//     // Add message to room
-//     const sala = await Sala.findById(salaId);
-//     sala.mensajes.push(newMessage._id);
-//     await sala.save();
-
-//     res.json({
-//       ok: true,
-//       sala,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({
-//       ok: false,
-//       msg: "Por favor hable con el administrador",
-//     });
-//   }
-// };
-
-//id sala - id usuario - texto de mensaje
 const grabarMensajeSala = async (payload) => {
   try {
     console.log(payload);
@@ -93,13 +61,40 @@ const grabarMensajeSala = async (payload) => {
   }
 };
 
+//grabarComentarioPublicacion
+const grabarComentarioPublicacion = async (payload) => {
+  try {
+    const { contenido, usuario, publicacion } = payload;
 
+    // Crear el comentario
+    const comentario = new Comentario({
+      contenido,
+      usuario,
+      publicacion,
+      estado: "publicado",
+    });
 
+    // Guardar el comentario en la base de datos
+    await comentario.save();
+
+    // Agregar el comentario a la publicación
+    const publicacionActualizada = await Publicacion.findByIdAndUpdate(
+      publicacion,
+      { $push: { comentarios: comentario._id } },
+      { new: true }
+    );
+
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
 
 module.exports = {
   usuarioConectado,
   usuarioDesconectado,
   grabarMensaje,
   grabarMensajeSala,
-
+  grabarComentarioPublicacion,
 };

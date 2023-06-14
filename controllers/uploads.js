@@ -4,8 +4,8 @@ const fs = require("fs");
 const { response } = require("express");
 const { subirArchivo } = require("../helpers/subir-archivo");
 
-const Publicacion = require("../models/publicacion");
-const Usuario = require("../models/usuario");
+const {Usuario,Publicacion} = require("../models");
+
 
 const cargarArchivo = async (req, res = response) => {
 

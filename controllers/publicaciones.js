@@ -1,7 +1,6 @@
 const { calcularDistancia } = require("../helpers/calcular-distancia");
-const { subirArchivo } = require("../helpers/subir-archivo");
-const Publicacion = require("../models/publicacion");
-const Usuario = require("../models/usuario");
+const { enviarNotificacion } = require("../helpers/enviar-notificacion");
+const {Usuario, Publicacion }= require("../models");
 
 const obtenerPublicacionesUsuario = async (req, res) => {
   const usuarioId = req.uid; // ID del usuario obtenido del token de autenticación
@@ -21,8 +20,8 @@ const obtenerPublicacionesUsuario = async (req, res) => {
     });
   }
 };
-
 const guardarPublicacion = async (req, res) => {
+  const radio = 2;
   const usuarioId = req.uid;
   const nombres = [];
   const {
@@ -76,6 +75,7 @@ const guardarPublicacion = async (req, res) => {
         nombres.push(nombre);
       }
     }
+    
 
     await publicacion.save();
 
@@ -83,64 +83,26 @@ const guardarPublicacion = async (req, res) => {
       ok: true,
       publicacion,
     });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      ok: false,
-      msg: "Por favor hable con el administrador",
-    });
-  }
-};
 
-const guardarListArchivo = async (req, res) => {
-  const nombres = [];
-  const { titulo, uid } = req.params;
-  // console.log(req.params);
+    const usuarios = await Usuario.find();
 
-  console.log(titulo, uid);
-  const archivo = req.files?.archivo;
-
-  try {
-    const publicacion = await Publicacion.findById(uid);
-
-    if (!publicacion) {
-      return res.status(404).json({ mensaje: "Publicación no encontrada" });
-    }
-    if (archivo !== undefined && archivo !== null) {
-      if (Array.isArray(archivo)) {
-        for (const file of archivo) {
-          const nombre = await subirArchivo(
-            file,
-            undefined,
-            "publicaciones/" + titulo.replace(/\s/g, "")
-          );
-          if (!publicacion.imagenes) {
-            publicacion.imagenes = []; // Inicializar como un array vacío si es nulo
-          }
-          publicacion.imagenes.push(nombre);
-          nombres.push(nombre);
-        }
-      } else {
-        const nombre = await subirArchivo(
-          archivo,
-          undefined,
-          "publicaciones/" + titulo.replace(/\s/g, "")
+    const usuariosEnRadio = usuarios.filter((usuario) => {
+      return usuario.direcciones.some((direccion) => {
+        const distancia = calcularDistancia(
+          direccion.latitud,
+          direccion.longitud,
+          latitud,
+          longitud
         );
-        if (!publicacion.imagenes) {
-          publicacion.imagenes = []; // Inicializar como un array vacío si es nulo
-        }
-        publicacion.imagenes.push(nombre);
-        nombres.push(nombre);
-      }
-    }
-
-    await publicacion.save();
-
-    res.json({
-      ok: true,
-      publicacion,
-      nombres,
+        return distancia <= radio;
+      });
     });
+
+    const tokens = usuariosEnRadio
+      .filter((usuario) => usuario._id.toString() !== usuarioId.toString())
+      .map((usuario) => usuario.tokenApp);
+
+    await enviarNotificacion(tokens, titulo, contenido);
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -150,6 +112,72 @@ const guardarListArchivo = async (req, res) => {
   }
 };
 
+const getPublicacionesEnRadio = async (req, res) => {
+  const radio = 2; // Radio en kilómetros
+  const { limite = 5, desde = 0 } = req.query;
+  try {
+    const usuario = await Usuario.findById(req.uid);
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado." });
+    }
+
+    let publicacionesEnRadio;
+
+    if (
+      usuario.direcciones.length > 0 &&
+      usuario.direcciones[0].latitud &&
+      usuario.direcciones[0].longitud
+    ) {
+      // Si el usuario tiene latitud y longitud en al menos una dirección, filtrar las publicaciones dentro del radio
+      publicacionesEnRadio = await Publicacion.find({
+        latitud: { $exists: true },
+        longitud: { $exists: true },
+      })
+        .sort({ createdAt: -1 })
+        .skip(Number(desde))
+        .limit(Number(limite))
+
+
+      publicacionesEnRadio = publicacionesEnRadio.filter((publicacion) => {
+        return usuario.direcciones.some((direccion) => {
+          const distancia = calcularDistancia(
+            publicacion.latitud,
+            publicacion.longitud,
+            direccion.latitud,
+            direccion.longitud
+          );
+
+          return distancia <= radio;
+        });
+      });
+    } else {
+      // Si el usuario no tiene latitud y longitud en ninguna dirección, obtener todas las publicaciones
+      //ordenadas por fecha de creación
+      publicacionesEnRadio = await Publicacion.find().exec();
+    }
+
+    //agrega el nombre del usuario a cada publicacion
+    let publicacionesEnRadio2 = publicacionesEnRadio.map((publicacion) => {
+      return {
+        ...publicacion._doc,
+        usuarioNombre: usuario.nombre,
+        uid: publicacion._id,
+      };
+    });
+
+    
+
+
+    res.json({
+      ok: true,
+      publicaciones: publicacionesEnRadio2,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: "Error al obtener las publicaciones." });
+  }
+};
 
 const dislikePublicacion = async (req, res) => {
   try {
@@ -176,61 +204,10 @@ const dislikePublicacion = async (req, res) => {
   }
 };
 
-const getPublicacionesEnRadio = async (req, res) => {
-  const radio = 1.8603572982599163; // Radio en kilómetros
-
-  try {
-    const usuario = await Usuario.findById(req.uid);
-
-    if (!usuario) {
-      return res.status(404).json({ mensaje: "Usuario no encontrado." });
-    }
-
-    let publicacionesEnRadio;
-
-    if (
-      usuario.direcciones.length > 0 &&
-      usuario.direcciones[0].latitud &&
-      usuario.direcciones[0].longitud
-    ) {
-      // Si el usuario tiene latitud y longitud en al menos una dirección, filtrar las publicaciones dentro del radio
-      publicacionesEnRadio = await Publicacion.find({
-        latitud: { $exists: true },
-        longitud: { $exists: true },
-      }).sort({ createdAt: -1 }).exec();
-
-      publicacionesEnRadio = publicacionesEnRadio.filter((publicacion) => {
-        return usuario.direcciones.some((direccion) => {
-          const distancia = calcularDistancia(
-            publicacion.latitud,
-            publicacion.longitud,
-            direccion.latitud,
-            direccion.longitud
-          );
-
-          return distancia <= radio;
-        });
-      });
-    } else {
-      // Si el usuario no tiene latitud y longitud en ninguna dirección, obtener todas las publicaciones
-      //ordenadas por fecha de creación
-      publicacionesEnRadio = await Publicacion.find().exec();
-    }
-
-    res.json({
-      ok: true,
-      publicaciones: publicacionesEnRadio,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ mensaje: "Error al obtener las publicaciones." });
-  }
-};
-
 //update publicacion
 const updatePublicacion = async (req, res) => {
   const { id } = req.params;
-  const { isLiked, likes} = req.body;
+  const { isLiked, likes } = req.body;
 
   try {
     const publicacion = await Publicacion.findById(id);
@@ -266,7 +243,7 @@ const updatePublicacion = async (req, res) => {
 
 const updatePublicacion2 = async (req, res) => {
   const { id } = req.params;
-  const { likes} = req.body;
+  const { likes } = req.body;
 
   try {
     const publicacion = await Publicacion.findById(id);
@@ -305,7 +282,9 @@ const obtenerPublicacionesUsuarioConLikes = async (req, res) => {
   try {
     const publicaciones = await Publicacion.find({ usuario: usuarioId });
 
-    const publicacionesConLikes = publicaciones.filter(publicacion => publicacion.isLiked);
+    const publicacionesConLikes = publicaciones.filter(
+      (publicacion) => publicacion.isLiked
+    );
 
     res.json({
       ok: true,
@@ -320,40 +299,39 @@ const obtenerPublicacionesUsuarioConLikes = async (req, res) => {
   }
 };
 
-  //update like publicacion
-  const likePublicacion = async (req, res) => {
-    try {
-      const publicacionId = req.params.id;
-      const usuarioId = req.uid;
-  
-      // Verificar si la publicación existe
-      const publicacion = await Publicacion.findById(publicacionId);
-      if (!publicacion) {
-        return res.status(404).json({ error: "Publicación no encontrada" });
-      }
-  
-      // Verificar si el usuario ya ha dado like a la publicación
-      const usuarioYaDioLike = publicacion.likes.includes(usuarioId.toString());
-  
-      if (!usuarioYaDioLike) {
-        // Agregar el ID del usuario a la lista de likes
-        publicacion.likes.push(usuarioId);
-      } else {
-        // Eliminar el ID del usuario de la lista de likes
-        publicacion.likes = publicacion.likes.filter((id) => id.toString() !== usuarioId.toString());
-      }
-  
-      await publicacion.save();
-  
-      res.status(200).json({ publicacion });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Error al gestionar el like" });
+//update like publicacion
+const likePublicacion = async (req, res) => {
+  try {
+    const publicacionId = req.params.id;
+    const usuarioId = req.uid;
+
+    // Verificar si la publicación existe
+    const publicacion = await Publicacion.findById(publicacionId);
+    if (!publicacion) {
+      return res.status(404).json({ error: "Publicación no encontrada" });
     }
-  };
-  
 
+    // Verificar si el usuario ya ha dado like a la publicación
+    const usuarioYaDioLike = publicacion.likes.includes(usuarioId.toString());
 
+    if (!usuarioYaDioLike) {
+      // Agregar el ID del usuario a la lista de likes
+      publicacion.likes.push(usuarioId);
+    } else {
+      // Eliminar el ID del usuario de la lista de likes
+      publicacion.likes = publicacion.likes.filter(
+        (id) => id.toString() !== usuarioId.toString()
+      );
+    }
+
+    await publicacion.save();
+
+    res.status(200).json({ publicacion });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al gestionar el like" });
+  }
+};
 
 module.exports = {
   obtenerPublicacionesUsuario,
@@ -361,7 +339,6 @@ module.exports = {
   getPublicacionesEnRadio,
   likePublicacion,
   dislikePublicacion,
-  guardarListArchivo,
   updatePublicacion,
   updatePublicacion2,
   obtenerPublicacionesUsuarioConLikes,
