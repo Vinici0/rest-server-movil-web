@@ -25,6 +25,9 @@ const UbicacionSchema = Schema(
       type: String,
       required: true,
     },
+    referencia : {
+      type: String,
+    },
     estado: {
       type: Boolean,
       default: true,

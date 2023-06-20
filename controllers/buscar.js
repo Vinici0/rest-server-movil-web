@@ -50,7 +50,7 @@ const buscarUbicaciones = async (
   if (esMongoID) {
     const ubicacion = await Ubicacion.findById(termino);
     return res.json({
-      results: ubicacion ? [ubicacion] : [],
+      ubicaciones: ubicacion ? [ubicacion] : [],
     });
   }
 
@@ -70,7 +70,7 @@ const buscarUbicaciones = async (
     .limit(Number(limite));
 
   res.json({
-    results: ubicaciones,
+    ubicaciones: ubicaciones,
   });
 };
 

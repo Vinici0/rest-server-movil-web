@@ -1,5 +1,6 @@
 const { response } = require("express");
-const {Usuario} = require("../models");
+const { Usuario } = require("../models");
+const { enviarNotificacion } = require("../helpers/enviar-notificacion");
 
 const getUsuarios = async (req, res = response) => {
   const desde = Number(req.query.desde) || 0;
@@ -18,9 +19,7 @@ const getUsuarios = async (req, res = response) => {
 const actualizarUsuario = async (req, res) => {
   const uid = req.uid;
   console.log(uid, "uid");
-  const { nombre, email, online, password, ...resto } = req.body; 
-
-  console.log(resto, "resto");
+  const { nombre, email, online, password, telefono, ...resto } = req.body;
 
   try {
     // Busca y actualiza el usuario por su ID
@@ -67,8 +66,122 @@ const agregarDireccion = async (req, res) => {
   }
 };
 
+const ageregarTelefonos = async (req, res) => {
+  const idUsuario = req.uid;
+
+  const { telefono } = req.body;
+
+  try {
+    const usuario = await Usuario.findById(idUsuario);
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+
+    // Verificar si el teléfono ya está asociado al usuario
+    if (usuario.telefonos.includes(telefono)) {
+      return res.status(400).json({
+        ok: false,
+        msg: "El teléfono ya está asociado al usuario",
+      });
+    }
+
+    usuario.telefonos.push(telefono);
+    await usuario.save();
+
+    res.status(201).json({ mensaje: "Teléfono agregado", usuario });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: "Error al agregar el teléfono" });
+  }
+};
+
+const eliminarTelefono = async (req, res) => {
+  const idUsuario = req.uid;
+  const { telefono } = req.body;
+
+  try {
+    const usuario = await Usuario.findById(idUsuario);
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+
+    // Verificar si el teléfono está asociado al usuario
+    if (!usuario.telefonos.includes(telefono)) {
+      return res.status(400).json({
+        ok: false,
+        msg: "El teléfono no está asociado al usuario",
+      });
+    }
+
+    // Eliminar el teléfono del arreglo
+    usuario.telefonos = usuario.telefonos.filter((tel) => tel !== telefono);
+    await usuario.save();
+
+    res.status(200).json({ mensaje: "Teléfono eliminado", usuario });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: "Error al eliminar el teléfono" });
+  }
+};
+
+
+const agregarTelefono = async (req, res) => {
+  const idUsuario = req.uid;
+  const { telefono } = req.body;
+
+  try {
+    const usuario = await Usuario.findById(idUsuario);
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+
+    usuario.telefono = telefono;
+    await usuario.save();
+
+    res.status(201).json({ mensaje: "Teléfono agregado", usuario });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: "Error al agregar el teléfono" });
+  }
+};
+
+const enviarNotificacionesArrayTelefonos = async (req, res) => {
+  const idUsuario = req.uid;
+
+  try {
+    const usuario = await Usuario.findById(idUsuario);
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+
+    const telefonos = usuario.telefonos; // Obtener el arreglo de teléfonos del usuario
+
+    const usuariosConTelefono = await Usuario.find({ telefono: { $in: telefonos } });
+    const tokens = usuariosConTelefono.map((usuario) => usuario.tokenApp);
+
+    const titulo = "Título de la notificación";
+    const contenido = "Contenido de la notificación";
+    console.log(tokens, "tokens");
+    await enviarNotificacion(tokens, titulo, contenido); 
+
+    res.status(200).json({ mensaje: "Notificación enviada", usuarios: usuariosConTelefono });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: "Error al enviar la notificación" });
+  }
+};
+
+
 module.exports = {
   getUsuarios,
   actualizarUsuario,
   agregarDireccion,
+  ageregarTelefonos,
+  agregarTelefono,
+  eliminarTelefono,
+  enviarNotificacionesArrayTelefonos
 };

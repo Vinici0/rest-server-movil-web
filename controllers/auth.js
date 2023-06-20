@@ -9,7 +9,7 @@ const crearUsuario = async (req, res = response) => {
 
   try {
     const existeEmail = await Usuario.findOne({ email });
-    if (existeEmail) {  
+    if (existeEmail) {
       return res.status(400).json({
         ok: false,
         msg: "El correo ya está registrado",
@@ -45,7 +45,10 @@ const login = async (req, res = response) => {
 
   console.log(email, password);
   try {
-    const usuarioDB = await Usuario.findOne({ email });
+    const usuarioDB = await Usuario.findOne({ email }).populate(
+      "ubicaciones",
+      "latitud longitud ciudad pais barrio"
+    );
     if (!usuarioDB) {
       return res.status(404).json({
         ok: false,
@@ -84,7 +87,6 @@ const login = async (req, res = response) => {
   }
 };
 
-
 const renewToken = async (req, res = response) => {
   const uid = req.uid;
 
@@ -92,7 +94,12 @@ const renewToken = async (req, res = response) => {
   const token = await generarJWT(uid);
 
   // Obtener el usuario por el UID, Usuario.findById...
-  const usuario = await Usuario.findById(uid);
+  const usuario = await Usuario.findById(uid).populate(
+    "ubicaciones",
+    "latitud longitud ciudad pais barrio"
+  );
+
+  usuario.ubicaciones.uid =  usuario.ubicaciones._id;
 
   res.json({
     ok: true,

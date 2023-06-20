@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-const enviarNotificacion = async (tokens, titulo, desc) => {
+const enviarNotificacion = async (tokens, titulo, desc, priority = "high") => {
   if (tokens.length === 0) {
     return;
   }
@@ -13,7 +13,7 @@ const enviarNotificacion = async (tokens, titulo, desc) => {
           title: titulo,
           body: desc,
         },
-        priority: "high",
+        priority: priority,
         data: {
           product: "Agua Caliente",
         },

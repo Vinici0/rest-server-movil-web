@@ -52,14 +52,9 @@ const crearSala = async (req, res) => {
     sala.usuarios.push(uid);
     await sala.save();
 
-    const salaResponse = _.pick(sala.toObject(), [
-      "nombre",
-      "codigo",
-      "color",
-      "propietario",
-      "_id",
-    ]);
-    salaResponse.uid = uid;
+    //agrega el uid del usuario a la sala con el nombre de idUsuario
+    const salaResponse = _.pick(sala.toObject(), ["nombre", "codigo", "color", "mensajes", "usuarios", "propietario", "_id"]);
+    salaResponse.idUsuario = uid;
 
     res.json({
       ok: true,
@@ -73,13 +68,13 @@ const crearSala = async (req, res) => {
     });
   }
 };
-
 const unirseSala = async (req, res) => {
   const { codigo } = req.body;
   const uid = req.uid;
 
   try {
     const sala = await Sala.findOne({ codigo });
+
     if (!sala) {
       return res.status(404).json({
         ok: false,
@@ -87,11 +82,27 @@ const unirseSala = async (req, res) => {
       });
     }
 
-    const salaResponse = _.pick(sala.toObject(), ["nombre", "codigo", "color"]);
-    salaResponse.uid = uid;
+    // Verificar si el usuario ya está en la sala
+    if (sala.usuarios.includes(uid)) {
+      return res.status(400).json({
+        ok: false,
+        msg: "El usuario ya está en la sala",
+      });
+    }
 
     sala.usuarios.push(uid);
     await sala.save();
+
+    const salaResponse = _.pick(sala.toObject(), [
+      "nombre",
+      "codigo",
+      "color",
+      "mensajes",
+      "usuarios",
+      "propietario",
+      "_id",
+    ]);
+    salaResponse.idUsuario = uid;
 
     res.json({
       ok: true,
@@ -105,6 +116,8 @@ const unirseSala = async (req, res) => {
     });
   }
 };
+
+
 
 const grabarMensajeSala = async (req, res) => {
   try {
@@ -132,10 +145,14 @@ const grabarMensajeSala = async (req, res) => {
 };
 
 const getSalas = async (req, res) => {
+  const uid = req.uid;
   const salas = await Sala.find(
     {},
     { nombre: 1, codigo: 1, _id: 1, usuarios: 1, color: 1 }
   );
+
+ 
+  console.log(uid);
   res.json({
     ok: true,
     salas,
@@ -166,7 +183,9 @@ const getSalesByUser = async (req, res) => {
     const salas = await Sala.find(
       { usuarios: uid },
       { nombre: 1, _id: 1, color: 1, codigo: 1 }
-    );
+    )
+
+      
     const totalUsuarios = await Sala.find({ usuarios: uid }).countDocuments();
     res.json({
       ok: true,

@@ -7,6 +7,7 @@ const {
   getPublicacionesEnRadio,
   updatePublicacion,
   likePublicacion,
+  guardarListArchivo,
 } = require("../controllers/publicaciones");
 const { validarCampos } = require("../middlewares/validar-campos");
 const { validacionesCrearPublicacion } = require("../middlewares/express-validator");
@@ -22,6 +23,8 @@ router.put("/like2/:id", validarJWT, likePublicacion);
 router.post("/", [...validacionesCrearPublicacion, validarCampos, validarJWT], guardarPublicacion);
 
 router.put("/:id", validarJWT, updatePublicacion);
+
+router.post("/listaArchivos/:uid/:titulo",validarCampos, guardarListArchivo);
 
 router.put("/like", validarJWT, updatePublicacion);
 
