@@ -61,13 +61,16 @@ const guardarPublicacion = async (req, res) => {
       publicacion,
     });
 
-    const usuarios = await Usuario.find();
+    const usuarios = await Usuario.find().populate(
+      "ubicaciones",
+      "latitud longitud tokenApp"
+    );
 
     const usuariosEnRadio = usuarios.filter((usuario) => {
-      return usuario.ubicaciones.some((direccion) => {
+      return usuario.ubicaciones.some((ubicacion) => {
         const distancia = calcularDistancia(
-          direccion.latitud,
-          direccion.longitud,
+          ubicacion.latitud,
+          ubicacion.longitud,
           latitud,
           longitud
         );
@@ -79,6 +82,7 @@ const guardarPublicacion = async (req, res) => {
       .filter((usuario) => usuario._id.toString() !== usuarioId.toString())
       .map((usuario) => usuario.tokenApp);
 
+    console.log(tokens, "tokens");
     await enviarNotificacion(tokens, titulo, contenido);
   } catch (error) {
     console.log(error);
@@ -93,7 +97,6 @@ const guardarListArchivo = async (req, res) => {
   const nombres = [];
   const { titulo, uid } = req.params;
 
-  console.log(titulo, uid);
   const archivo = req.files?.archivo;
 
   try {
@@ -154,11 +157,6 @@ const getPublicacionesEnRadio = async (req, res) => {
       "ubicaciones",
       "latitud longitud"
     );
-    console.log(usuario.ubicaciones);
-    for (let i = 0; i < usuario.ubicaciones.length; i++) {
-      console.log(usuario.ubicaciones[i].latitud);
-      console.log(usuario.ubicaciones[i].longitud);
-    }
 
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado." });
@@ -173,8 +171,7 @@ const getPublicacionesEnRadio = async (req, res) => {
         longitud: { $exists: true },
       })
         .sort({ createdAt: -1 })
-        .skip(Number(desde))
-        .limit(Number(limite));
+        .skip(Number(desde));
 
       publicacionesEnRadio = publicacionesEnRadio.filter((publicacion) => {
         return usuario.ubicaciones.some((direccion) => {
@@ -191,7 +188,9 @@ const getPublicacionesEnRadio = async (req, res) => {
     } else {
       // Si el usuario no tiene latitud y longitud en ninguna dirección, obtener todas las publicaciones
       //ordenadas por fecha de creación
-      publicacionesEnRadio = await Publicacion.find().exec();
+      publicacionesEnRadio = await Publicacion.find()
+        .sort({ createdAt: -1 })
+        .skip(Number(desde));
     }
 
     //agrega el nombre del usuario a cada publicacion
@@ -202,6 +201,8 @@ const getPublicacionesEnRadio = async (req, res) => {
         uid: publicacion._id,
       };
     });
+
+    publicacionesEnRadio2 = publicacionesEnRadio2.slice(0, Number(limite));
 
     res.json({
       ok: true,
@@ -366,6 +367,8 @@ const likePublicacion = async (req, res) => {
     res.status(500).json({ error: "Error al gestionar el like" });
   }
 };
+
+
 
 module.exports = {
   obtenerPublicacionesUsuario,

@@ -1,9 +1,7 @@
-
-const {Publicacion, Comentario} = require("../models");
+const { Publicacion, Comentario } = require("../models");
 
 const createComentario = async (req, res) => {
-
-    const usuarioId = req.uid;
+  const usuarioId = req.uid;
   try {
     const { contenido, publicacionId } = req.body;
 
@@ -41,62 +39,58 @@ const getComentariosByPublicacion = async (req, res) => {
   try {
     const { publicacionId } = req.params;
     // Buscar los comentarios de la publicación en la base de datos
-    const comentarios = await Comentario.find({ publicacion: publicacionId });
+    const comentarios = await Comentario.find({ publicacion: publicacionId })
+      .populate("usuario", "nombre img")
+      .sort({ createdAt: -1 });
 
-    res.status(200).json({ comentarios });
+    res.status(200).json({
+      ok: true,
+      comentarios,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error al obtener los comentarios" });
   }
 };
 
-const likeComentario = async (req, res) => {
-    try {
-        const comentarioId = req.params.id;
-    
-        // Verificar si el comentario existe
-        const comentario = await Comentario.findById(comentarioId);
-        if (!comentario) {
-          return res.status(404).json({ error: "Comentario no encontrado" });
-        }
-    
-        // Incrementar el contador de likes
-        comentario.likes += 1;
-        await comentario.save();
-    
-        res.status(200).json({ likes: comentario.likes });
-      } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Error al incrementar el contador de likes" });
-      }
-};
+const toggleLikeComentario = async (req, res) => {
+  try {
+    const comentarioId = req.params.id;
+    console.log(comentarioId, "comentarioId");
 
-const dislikeComentario = async (req, res) => {
-    try {
-        const comentarioId = req.params.id;
-    
-        // Verificar si el comentario existe
-        const comentario = await Comentario.findById(comentarioId);
-        if (!comentario) {
-          return res.status(404).json({ error: "Comentario no encontrado" });
-        }
-    
-        // Verificar si el contador de likes es mayor a cero antes de decrementar
-        if (comentario.likes > 0) {
-          comentario.likes -= 1;
-          await comentario.save();
-        }
-    
-        res.status(200).json({ likes: comentario.likes });
-      } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Error al decrementar el contador de likes" });
-      }
+    const comentario = await Comentario.findById(comentarioId).populate(
+      "usuario",
+      "nombre img"
+    );
+    if (!comentario) {
+      return res.status(404).json({ error: "Comentario no encontrado" });
+    }
+
+    // Verificar si el usuario ya ha dado like al comentario
+    const usuarioId = req.uid;
+    const usuarioIndex = comentario.likes.findIndex(
+      (userId) => userId.toString() === usuarioId
+    );
+
+    if (usuarioIndex === -1) {
+      // El usuario no ha dado like al comentario, agregar el like
+      comentario.likes.push(usuarioId);
+    } else {
+      // El usuario ya ha dado like al comentario, quitar el like
+      comentario.likes.splice(usuarioIndex, 1);
+    }
+
+    await comentario.save();
+
+    res.status(200).json({ ok: true, comentario: comentario });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al modificar el contador de likes" });
+  }
 };
 
 module.exports = {
   createComentario,
-    getComentariosByPublicacion,
-    likeComentario,
-    dislikeComentario
+  getComentariosByPublicacion,
+  toggleLikeComentario,
 };

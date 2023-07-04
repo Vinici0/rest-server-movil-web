@@ -1,4 +1,4 @@
-const { Publicacion, Sala, Mensaje, Usuario } = require("../models");
+const { Publicacion, Sala, Mensaje, Usuario, Comentario } = require("../models");
 
 const usuarioConectado = async (uid = "") => {
   if (!uid) return null;
@@ -21,8 +21,6 @@ const usuarioDesconectado = async (uid = "") => {
   return usuario;
 };
 
-// payload: {
-
 const grabarMensaje = async (payload) => {
   // payload: {
   //     de: '',
@@ -31,7 +29,6 @@ const grabarMensaje = async (payload) => {
   // }
 
   try {
-    console.log("grabarMensaje");
     console.log(payload);
     const mensaje = new Mensaje(payload);
     await mensaje.save();
@@ -62,35 +59,70 @@ const grabarMensajeSala = async (payload) => {
 };
 
 //grabarComentarioPublicacion
+// const grabarComentarioPublicacion = async (payload) => {
+//   try {
+//     const { mensaje, usuario, publicacion } = payload;
+
+//     // Crear el comentario
+//     const comentario = new Comentario({
+//       mensaje,
+//       usuario,
+//       publicacion,
+//       estado: "publicado",
+//     });
+
+//     // Guardar el comentario en la base de datos
+//     await comentario.save();
+
+//     // Agregar el comentario a la publicación
+//     const publicacionActualizada = await Publicacion.findByIdAndUpdate(
+//       publicacion,
+//       { $push: { comentarios: comentario._id } },
+//       { new: true }
+//     );
+
+//     return true;
+//   } catch (error) {
+//     console.log(error);
+//     return false;
+//   }
+// };
+
+
 const grabarComentarioPublicacion = async (payload) => {
-  try {
-    const { contenido, usuario, publicacion } = payload;
 
-    // Crear el comentario
-    const comentario = new Comentario({
-      contenido,
-      usuario,
-      publicacion,
-      estado: "publicado",
-    });
-
-    // Guardar el comentario en la base de datos
-    await comentario.save();
-
-    // Agregar el comentario a la publicación
-    const publicacionActualizada = await Publicacion.findByIdAndUpdate(
-      publicacion,
-      { $push: { comentarios: comentario._id } },
-      { new: true }
-    );
-
-    return true;
-  } catch (error) {
-    console.log(error);
-    return false;
+  const usuarioId = payload.de;
+try {
+  const { mensaje, para } = payload;
+console.log(payload);
+  // Verificar si la publicación existe
+  const publicacion = await Publicacion.findById(para);
+  if (!publicacion) {
+    return res.status(404).json({ error: "Publicación no encontrada" });
   }
-};
 
+  // Crear el nuevo comentario
+  const comentario = new Comentario({
+    contenido: mensaje,
+    usuario: usuarioId,
+    publicacion: para,
+    estado: "publicado",
+  });
+
+  console.log(comentario);
+
+  await comentario.save();
+
+  // Agregar el comentario a la lista de comentarios de la publicación
+  publicacion.comentarios.push(comentario._id);
+  await publicacion.save();
+
+  return true;
+} catch (error) {
+  console.error(error);
+  return false;
+}
+};
 module.exports = {
   usuarioConectado,
   usuarioDesconectado,

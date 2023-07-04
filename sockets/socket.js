@@ -4,6 +4,7 @@ const {
   usuarioConectado,
   usuarioDesconectado,
   grabarMensajeSala,
+  grabarComentarioPublicacion,
 } = require("../controllers/socket");
 
 // Mensajes de Sockets
@@ -15,12 +16,12 @@ io.on("connection", (client) => {
   console.log("cliente.id");
   const [valido, uid] = comprobarJWT(client.handshake.headers["x-token"]);
 
-   // Verificar autenticación
-   
-   if (!valido) {
+  // Verificar autenticación
+
+  if (!valido) {
     console.log("Cliente no autenticado");
     return client.disconnect();
-   }
+  }
 
   // Cliente autenticado
   usuarioConectado(uid);
@@ -40,11 +41,16 @@ io.on("connection", (client) => {
     }
   });
 
-  //mensaje-grupal
   client.on("mensaje-grupal", async (payload) => {
     grabarMensajeSala(payload);
     client.broadcast.to(payload.para).emit("mensaje-grupal", payload);
   });
+
+  client.on("comentario-publicacion", async (payload) => {
+    grabarComentarioPublicacion(payload);
+    client.broadcast.to(payload.para).emit("comentario-publicacion", payload);
+  });
+  
 
   client.on("disconnect", () => {
     usuarioDesconectado(uid);

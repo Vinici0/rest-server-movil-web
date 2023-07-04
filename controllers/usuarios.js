@@ -66,6 +66,9 @@ const agregarDireccion = async (req, res) => {
   }
 };
 
+
+
+
 const ageregarTelefonos = async (req, res) => {
   const idUsuario = req.uid;
 
@@ -150,23 +153,28 @@ const agregarTelefono = async (req, res) => {
 
 const enviarNotificacionesArrayTelefonos = async (req, res) => {
   const idUsuario = req.uid;
+  const { lat, lng } = req.body;
 
   try {
-    const usuario = await Usuario.findById(idUsuario);
+    const usuario = await Usuario.findById(idUsuario).populate("ubicaciones", "latitud longitud");
 
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado" });
     }
+    const data = {
+      nombre: usuario.nombre,
+      latitud: lat,
+      longitud: lng,
+    };
 
     const telefonos = usuario.telefonos; // Obtener el arreglo de teléfonos del usuario
 
     const usuariosConTelefono = await Usuario.find({ telefono: { $in: telefonos } });
     const tokens = usuariosConTelefono.map((usuario) => usuario.tokenApp);
 
-    const titulo = "Título de la notificación";
-    const contenido = "Contenido de la notificación";
-    console.log(tokens, "tokens");
-    await enviarNotificacion(tokens, titulo, contenido); 
+    const titulo = `${usuario.nombre} necesita ayuda`;
+    const contenido = "Presiona para ver la ubicación";
+    await enviarNotificacion(tokens, titulo, contenido, data);
 
     res.status(200).json({ mensaje: "Notificación enviada", usuarios: usuariosConTelefono });
   } catch (error) {

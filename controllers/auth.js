@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 
 const Usuario = require("../models/usuario");
 const { generarJWT } = require("../helpers/jwt");
+const { validarGoogleIdToken } = require("../helpers/google-verify-token");
 
 const crearUsuario = async (req, res = response) => {
   const { email, password, tokenApp } = req.body;
@@ -67,13 +68,76 @@ const login = async (req, res = response) => {
 
     // Actualizar el token de dispositivo si se proporciona
     if (tokenApp) {
-      await Usuario.findOneAndUpdate({ email }, { tokenApp });
+      await Usuario.findOneAndUpdate({ email }, { tokenApp });//b
     }
 
     // Generar el JWT
     const token = await generarJWT(usuarioDB.id);
 
     res.json({
+      ok: true,
+      usuario: usuarioDB,
+      token,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      ok: false,
+      msg: "Hable con el administrador",
+    });
+  }
+};
+
+const googleAuth = async (req, res = response) => {
+  const token = req.body.token;
+  const { tokenApp } = req.body;
+  if (!token) {
+    return res.json({
+      ok: false,
+      msg: "No hay token en la petición",
+    });
+  }
+
+  const googleUser = await validarGoogleIdToken(token);
+  console.log(googleUser);
+  console.log(googleUser.name);
+  const { email } = googleUser;
+  console.log(email);
+  try {
+    if (!googleUser) {
+      return res.status(400).json({
+        ok: false,
+      });
+    }
+
+    console.log(email);
+
+    let usuarioDB = await Usuario.findOne({ email }).populate(
+      "ubicaciones",
+      "latitud longitud ciudad pais barrio"
+    );
+
+    console.log(usuarioDB);
+
+    if (!usuarioDB) {
+      // Si el usuario no existe, lo creamos
+      const data = {
+        nombre: googleUser.name,
+        tokenApp: tokenApp,
+        email,
+        password: "@@@",
+        img: googleUser.picture,
+        google: true,
+      };
+
+      usuarioDB = new Usuario(data);
+
+      await usuarioDB.save();
+    }
+    // Generar el JWT
+    const token = await generarJWT(usuarioDB.id);
+
+    return res.json({
       ok: true,
       usuario: usuarioDB,
       token,
@@ -99,7 +163,7 @@ const renewToken = async (req, res = response) => {
     "latitud longitud ciudad pais barrio"
   );
 
-  usuario.ubicaciones.uid =  usuario.ubicaciones._id;
+  usuario.ubicaciones.uid = usuario.ubicaciones._id;
 
   res.json({
     ok: true,
@@ -112,4 +176,5 @@ module.exports = {
   crearUsuario,
   login,
   renewToken,
+  googleAuth,
 };

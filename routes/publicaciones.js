@@ -18,6 +18,7 @@ router.get("/", validarJWT, obtenerPublicacionesUsuario);
 
 router.get("/cercanas", validarJWT, getPublicacionesEnRadio);
 
+
 router.put("/like2/:id", validarJWT, likePublicacion);
 
 router.post("/", [...validacionesCrearPublicacion, validarCampos, validarJWT], guardarPublicacion);

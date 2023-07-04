@@ -16,14 +16,16 @@ const ComentarioSchema = Schema(
       ref: "Publicacion",
       required: true,
     },
-    likes: {
-      type: Number,
-      default: 0,
-    },
+    likes: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Usuario",
+      },
+    ],
     estado: {
       type: String,
       enum: ["publicado", "borrador"],
-      required: true,
+      required: true, 
     },
   },
   {

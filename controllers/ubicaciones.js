@@ -1,4 +1,4 @@
-const {Ubicacion, Usuario} = require("../models");
+const { Ubicacion, Usuario } = require("../models");
 
 const crearUbicacion = async (req, res = response) => {
   try {
@@ -32,7 +32,6 @@ const obtenerUbicaciones = async (req, res = response) => {
     });
   }
 };
-
 
 const obtenerUbicacionesPorUsuario = async (req, res = response) => {
   const usuarioId = req.uid;
@@ -88,7 +87,7 @@ const agregarUbicacion = async (req, res = response) => {
 
     res.json({
       ok: true,
-      msg: "Ubicación agregada al usuario exitosamente",
+      ubicacion,
     });
   } catch (error) {
     console.log(error);
@@ -102,6 +101,7 @@ const agregarUbicacion = async (req, res = response) => {
 //delete ubicacion por id
 const eliminarUbicacion = async (req, res = response) => {
   const usuarioId = req.uid;
+  const ubicacionId = req.params.id;
 
   try {
     const usuario = await Usuario.findById(usuarioId);
@@ -113,6 +113,23 @@ const eliminarUbicacion = async (req, res = response) => {
       });
     }
 
+    // Verificar si la ubicación está asociada al usuario
+    if (!usuario.ubicaciones.includes(ubicacionId)) {
+      return res.status(400).json({
+        ok: false,
+        msg: "La ubicación no está asociada al usuario",
+      });
+    }
+
+    // Eliminar la ubicación del usuario
+    await Usuario.findByIdAndUpdate(usuarioId, {
+      $pull: { ubicaciones: ubicacionId },
+    });
+
+    res.json({
+      ok: true,
+      msg: "Ubicación eliminada del usuario exitosamente",
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -122,11 +139,10 @@ const eliminarUbicacion = async (req, res = response) => {
   }
 };
 
-
 module.exports = {
   crearUbicacion,
   obtenerUbicaciones,
   obtenerUbicacionesPorUsuario,
   agregarUbicacion,
-
+  eliminarUbicacion,
 };

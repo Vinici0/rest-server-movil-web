@@ -1,9 +1,17 @@
 const axios = require("axios");
 
-const enviarNotificacion = async (tokens, titulo, desc, priority = "high") => {
+const enviarNotificacion = async (tokens, titulo, desc, usuario = {}) => {
   if (tokens.length === 0) {
+    console.log("No hay tokens");
     return;
   }
+
+  const data = {
+    nombre: usuario.nombre,
+    latitud: usuario.latitud,
+    longitud: usuario.longitud
+  };
+
 
   try {
     const response = await axios.post(
@@ -13,9 +21,9 @@ const enviarNotificacion = async (tokens, titulo, desc, priority = "high") => {
           title: titulo,
           body: desc,
         },
-        priority: priority,
+        priority:"high",
         data: {
-          product: "Agua Caliente",
+          usuario: JSON.stringify(data),
         },
         registration_ids: tokens,
       },
@@ -26,6 +34,7 @@ const enviarNotificacion = async (tokens, titulo, desc, priority = "high") => {
         },
       }
     );
+
 
   } catch (error) {
     console.log(error);

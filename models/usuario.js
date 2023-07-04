@@ -39,6 +39,9 @@ const UsuarioSchema = Schema({
       type: String,
     }
   ],
+  img: {
+    type: String,
+  },
   online: {
     type: Boolean,
     default: false,
@@ -46,6 +49,10 @@ const UsuarioSchema = Schema({
   tokenApp: {
     type: String,
     default: null,
+  },
+  google: {
+    type: Boolean,
+    default: false,
   },
 });
 

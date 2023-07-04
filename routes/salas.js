@@ -19,7 +19,7 @@ const router = Router();
 
 router.post("/", validarJWT, crearSala);
 
-router.get("/", validarJWT,getSalas);
+router.get("/",getSalas);
 
 router.put("/:salaId", updateSala);
 

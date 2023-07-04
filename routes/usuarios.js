@@ -15,7 +15,7 @@ const router = Router();
 
 router.delete("/delete-telefono", validarJWT, eliminarTelefono );
 router.get("/", validarJWT, getUsuarios);
-router.get("/notificacion", validarJWT, enviarNotificacionesArrayTelefonos);
+router.post("/notificacion", validarJWT, enviarNotificacionesArrayTelefonos);
 router.put("/", validarJWT, actualizarUsuario);
 router.put("/add-direccion", validarJWT, agregarDireccion);
 router.put("/add-telefono", validarJWT, agregarTelefono );

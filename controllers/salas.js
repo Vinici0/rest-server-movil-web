@@ -152,7 +152,6 @@ const getSalas = async (req, res) => {
   );
 
  
-  console.log(uid);
   res.json({
     ok: true,
     salas,

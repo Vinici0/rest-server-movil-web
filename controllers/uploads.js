@@ -13,7 +13,6 @@ const cargarArchivo = async (req, res = response) => {
     const nombres = [];
     for (const archivo of req.files.archivo) {
       const nombre = await subirArchivo(archivo, undefined, "imgs");
-      console.log(nombre);
       nombres.push(nombre);
     }
     res.json({ nombres });
