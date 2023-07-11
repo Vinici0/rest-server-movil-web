@@ -99,8 +99,6 @@ const googleAuth = async (req, res = response) => {
   }
 
   const googleUser = await validarGoogleIdToken(token);
-  console.log(googleUser);
-  console.log(googleUser.name);
   const { email } = googleUser;
   console.log(email);
   try {
@@ -110,14 +108,10 @@ const googleAuth = async (req, res = response) => {
       });
     }
 
-    console.log(email);
-
     let usuarioDB = await Usuario.findOne({ email }).populate(
       "ubicaciones",
       "latitud longitud ciudad pais barrio"
     );
-
-    console.log(usuarioDB);
 
     if (!usuarioDB) {
       // Si el usuario no existe, lo creamos
@@ -152,25 +146,34 @@ const googleAuth = async (req, res = response) => {
 };
 
 const renewToken = async (req, res = response) => {
-  const uid = req.uid;
+  try {
+    const uid = req.uid;
 
-  // generar un nuevo JWT, generarJWT... uid...
-  const token = await generarJWT(uid);
+    // generar un nuevo JWT, generarJWT... uid...
+    const token = await generarJWT(uid);
 
-  // Obtener el usuario por el UID, Usuario.findById...
-  const usuario = await Usuario.findById(uid).populate(
-    "ubicaciones",
-    "latitud longitud ciudad pais barrio"
-  );
+    // Obtener el usuario por el UID, Usuario.findById...
+    const usuario = await Usuario.findById(uid).populate(
+      "ubicaciones",
+      "latitud longitud ciudad pais barrio"
+    );
 
-  usuario.ubicaciones.uid = usuario.ubicaciones._id;
+    usuario.ubicaciones.uid = usuario.ubicaciones._id;
 
-  res.json({
-    ok: true,
-    usuario,
-    token,
-  });
+    res.json({
+      ok: true,
+      usuario,
+      token,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      ok: false,
+      msg: "Hable con el administrador",
+    });
+  }
 };
+
 
 module.exports = {
   crearUsuario,

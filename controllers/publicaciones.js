@@ -4,8 +4,7 @@ const { subirArchivo } = require("../helpers/subir-archivo");
 const { Usuario, Publicacion } = require("../models");
 
 const obtenerPublicacionesUsuario = async (req, res) => {
-  const usuarioId = req.uid; // ID del usuario obtenido del token de autenticación
-
+  const usuarioId = req.uid; 
   try {
     const publicaciones = await Publicacion.find({ usuario: usuarioId });
 
@@ -151,7 +150,7 @@ const guardarListArchivo = async (req, res) => {
 
 const getPublicacionesEnRadio = async (req, res) => {
   const radio = 2; // Radio en kilómetros
-  const { limite = 12, desde = 0 } = req.query;
+  const { limite = 15, desde = 0 } = req.query;
   try {
     const usuario = await Usuario.findById(req.uid).populate(
       "ubicaciones",

@@ -23,17 +23,25 @@ const getAllMessages = async (req, res) => {
 };
 
 const getMensajeByRoom = async (req, res) => {
-  const miId = req.uid;
   const { salaId } = req.params;
+  const { limite = 50, desde = 0 } = req.query;
 
   try {
-    const sala = await Sala.findById(salaId).populate("mensajes");
-    const last30 = sala.mensajes.slice(-30).reverse();
+    const sala = await Sala.findById(salaId)
+      .populate({
+        path: "mensajes",
+        options: {
+          skip: Number(desde),
+          limit: Number(limite),
+          sort: { createdAt: -1 },
+        },
+      })
+      .lean(); 
+
     const mensajesSala = await Promise.all(
-      last30.map(async (mensaje) => {
+      sala.mensajes.map(async (mensaje) => {
         const usuarioMensaje = await Usuario.findById(mensaje.usuario);
-        mensaje = mensaje.toObject();
-        mensaje.nombre = usuarioMensaje.nombre;
+        mensaje = { ...mensaje, nombre: usuarioMensaje.nombre, img: usuarioMensaje.img };
         return mensaje;
       })
     );
@@ -50,6 +58,7 @@ const getMensajeByRoom = async (req, res) => {
     });
   }
 };
+
 
 module.exports = {
   getAllMessages,

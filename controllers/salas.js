@@ -148,7 +148,7 @@ const getSalas = async (req, res) => {
   const uid = req.uid;
   const salas = await Sala.find(
     {},
-    { nombre: 1, codigo: 1, _id: 1, usuarios: 1, color: 1 }
+    { nombre: 1, codigo: 1, _id: 1, usuarios: 1, color: 1 , propietario: 1}
   );
 
  
@@ -181,7 +181,7 @@ const getSalesByUser = async (req, res) => {
   try {
     const salas = await Sala.find(
       { usuarios: uid },
-      { nombre: 1, _id: 1, color: 1, codigo: 1 }
+      { nombre: 1, _id: 1, color: 1, codigo: 1 , propietario: 1}
     )
 
       
@@ -283,7 +283,15 @@ const deleteSala = async (req, res) => {
 const obtenerUsuariosSala = async (req, res) => {
   const { salaId } = req.params;
   try {
-    const sala = await Sala.findById(salaId).populate("usuarios");
+    const sala = await Sala.findById(salaId).populate({
+      path: "usuarios",
+      populate: {
+        path: "ubicaciones",
+        model: "Ubicacion", // Reemplaza "Ubicacion" con el nombre de tu modelo de ubicaciones
+      },
+    });
+
+    console.log(sala.usuarios);
 
     if (!sala) {
       return res.status(404).json({
@@ -304,6 +312,7 @@ const obtenerUsuariosSala = async (req, res) => {
     });
   }
 };
+
 
 module.exports = {
   crearSala,
