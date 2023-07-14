@@ -18,8 +18,7 @@ app.use(express.json());
 const server = require("http").createServer(app);
 module.exports.io = require("socket.io")(server);
 require("./sockets/socket");
-// Path público
-const publicPath = path.resolve(__dirname, "public");
+const publicPath = path.resolve(__dirname, "./prueba/public");
 app.use(express.static(publicPath));
 
 app.use(
@@ -41,9 +40,9 @@ app.use("/api/ubicaciones", require("./routes/ubicaciones"));
 app.use("/api/uploads", require("./routes/uploads"));
 app.use("/api/usuarios", require("./routes/usuarios"));
 
+
 server.listen(process.env.PORT, (err) => {
   if (err) throw new Error(err);
-
   console.log("Servidor corriendo en puerto", process.env.PORT);
 });
 

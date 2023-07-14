@@ -1,16 +1,5 @@
 const { Schema, model } = require("mongoose");
 
-// const DireccionSchema = Schema({
-//   latitud: {
-//     type: Number,
-//     required: true,
-//   },
-//   longitud: {
-//     type: Number,
-//     required: true,
-//   },
-// });
-
 const UsuarioSchema = Schema({
   nombre: {
     type: String,

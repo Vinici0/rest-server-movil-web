@@ -22,7 +22,7 @@
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
     "mongoose": "^6.6.5",
-    "socket.io": "^4.6.1",
+    "socket.io": "^4.7.1",
     "uuid": "^9.0.0"
   }
 }

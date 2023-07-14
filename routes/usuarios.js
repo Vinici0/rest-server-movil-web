@@ -9,6 +9,7 @@ const {
   eliminarTelefono,
   enviarNotificacionesArrayTelefonos,
   getUsuarios,
+  actualizarTelefonoOrNombre,
 } = require("../controllers/usuarios");
 
 const router = Router();
@@ -20,5 +21,6 @@ router.put("/", validarJWT, actualizarUsuario);
 router.put("/add-direccion", validarJWT, agregarDireccion);
 router.put("/add-telefono", validarJWT, agregarTelefono );
 router.put("/add-telefonos", validarJWT, ageregarTelefonos );
+router.put("/add-telefono-nombre", validarJWT, actualizarTelefonoOrNombre );
 
 module.exports = router;

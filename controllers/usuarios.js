@@ -38,6 +38,33 @@ const actualizarUsuario = async (req, res) => {
   }
 };
 
+const actualizarTelefonoOrNombre = async (req, res) => {
+  const uid = req.uid;
+  const { nombre, telefono } = req.body;
+  console.log(nombre, telefono);
+
+  try {
+    // Busca y actualiza el usuario por su ID
+    const usuario = await Usuario.findByIdAndUpdate(
+      uid,
+      { nombre, telefono },
+      { new: true }
+    );
+
+    res.json({
+      ok: true,
+      usuario,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      msg: "Por favor hable con el administrador",
+    });
+  }
+};
+
+
 // Controlador para agregar una nueva dirección a un usuario
 const agregarDireccion = async (req, res) => {
   const idUsuario = req.uid;
@@ -65,8 +92,6 @@ const agregarDireccion = async (req, res) => {
     res.status(500).json({ mensaje: "Error al agregar la dirección" });
   }
 };
-
-
 
 
 const ageregarTelefonos = async (req, res) => {
@@ -184,6 +209,10 @@ const enviarNotificacionesArrayTelefonos = async (req, res) => {
 };
 
 
+
+
+
+
 module.exports = {
   getUsuarios,
   actualizarUsuario,
@@ -191,5 +220,6 @@ module.exports = {
   ageregarTelefonos,
   agregarTelefono,
   eliminarTelefono,
-  enviarNotificacionesArrayTelefonos
+  enviarNotificacionesArrayTelefonos,
+  actualizarTelefonoOrNombre
 };

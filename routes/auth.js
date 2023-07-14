@@ -1,6 +1,6 @@
 /*
     path: api/login
-
+    TOUTER
 */
 const { Router } = require('express');
 const { check } = require('express-validator');
@@ -23,12 +23,13 @@ router.post('/new', [
 router.post('/', [
     check('password','La contraseña es obligatoria').not().isEmpty(),
     check('email','El correo es obligatorio').isEmail(),
+    validarCampos
 ], login );
 
 
 router.get('/renew', validarJWT, renewToken );
 
 
-router.post('/google', googleAuth );
+router.post('/google', googleAuth );    
 
 module.exports = router;

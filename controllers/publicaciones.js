@@ -1,6 +1,6 @@
 const { calcularDistancia } = require("../helpers/calcular-distancia");
 const { enviarNotificacion } = require("../helpers/enviar-notificacion");
-const { subirArchivo } = require("../helpers/subir-archivo");
+const {  subirArchivoPublicacion } = require("../helpers/subir-archivo");
 const { Usuario, Publicacion } = require("../models");
 
 const obtenerPublicacionesUsuario = async (req, res) => {
@@ -107,7 +107,7 @@ const guardarListArchivo = async (req, res) => {
     if (archivo !== undefined && archivo !== null) {
       if (Array.isArray(archivo)) {
         for (const file of archivo) {
-          const nombre = await subirArchivo(
+          const nombre = await subirArchivoPublicacion(
             file,
             undefined,
             "publicaciones/" + titulo.replace(/\s/g, "")
@@ -119,7 +119,7 @@ const guardarListArchivo = async (req, res) => {
           nombres.push(nombre);
         }
       } else {
-        const nombre = await subirArchivo(
+        const nombre = await subirArchivoPublicacion(
           archivo,
           undefined,
           "publicaciones/" + titulo.replace(/\s/g, "")

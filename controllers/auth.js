@@ -49,7 +49,7 @@ const login = async (req, res = response) => {
     const usuarioDB = await Usuario.findOne({ email }).populate(
       "ubicaciones",
       "latitud longitud ciudad pais barrio"
-    );
+    ).exec();
     if (!usuarioDB) {
       return res.status(404).json({
         ok: false,
