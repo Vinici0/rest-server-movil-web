@@ -13,7 +13,7 @@ io.on("connection", (client) => {
 
   // console.log(client.handshake.headers);
   console.log(client.handshake.headers["x-token"], "token");
-  console.log("cliente.id");
+
   const [valido, uid] = comprobarJWT(client.handshake.headers["x-token"]);
 
   // Verificar autenticación
@@ -26,7 +26,6 @@ io.on("connection", (client) => {
   // Cliente autenticado
   usuarioConectado(uid);
   console.log("Cliente autenticado");
-  // TODO: Ingresar al usuario a una sala en particular
   client.on("join-room", async (payload) => {
     const { codigo } = payload;
     console.log(codigo, "codigo");
@@ -48,7 +47,8 @@ io.on("connection", (client) => {
   });
 
   client.on("comentario-publicacion", async (payload) => {
-    grabarComentarioPublicacion(payload);
+    const uid = await grabarComentarioPublicacion(payload);
+    payload = { ...payload, uid: uid };
     client.broadcast.to(payload.para).emit("comentario-publicacion", payload);
   });
   

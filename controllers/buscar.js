@@ -70,6 +70,7 @@ const buscarUbicaciones = async (
     .limit(Number(limite));
 
   res.json({
+    ok: true,
     ubicaciones: ubicaciones,
   });
 };

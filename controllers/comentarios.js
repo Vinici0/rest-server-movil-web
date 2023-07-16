@@ -40,8 +40,8 @@ const getComentariosByPublicacion = async (req, res) => {
     const { publicacionId } = req.params;
     // Buscar los comentarios de la publicación en la base de datos
     const comentarios = await Comentario.find({ publicacion: publicacionId })
-      .populate("usuario", "nombre img")
-      .sort({ createdAt: -1 });
+      .populate("usuario", "nombre img google")
+
 
     res.status(200).json({
       ok: true,

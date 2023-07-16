@@ -43,7 +43,11 @@ const UsuarioSchema = Schema({
     type: Boolean,
     default: false,
   },
-});
+},
+{
+  timestamps: true,
+}
+);
 
 UsuarioSchema.method("toJSON", function () {
   const { __v, _id, password, ...object } = this.toObject();

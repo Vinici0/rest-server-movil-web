@@ -100,7 +100,6 @@ const googleAuth = async (req, res = response) => {
 
   const googleUser = await validarGoogleIdToken(token);
   const { email } = googleUser;
-  console.log(email);
   try {
     if (!googleUser) {
       return res.status(400).json({
