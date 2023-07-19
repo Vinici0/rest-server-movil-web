@@ -32,6 +32,10 @@ const PublicacionSchema = Schema(
       ref: "Usuario",
       required: true,
     },
+    nombreUsuario: {
+      type: String,
+      required: true,
+    },
     likes: [
       {
         type: Schema.Types.ObjectId,
@@ -64,6 +68,10 @@ const PublicacionSchema = Schema(
     isLiked: {
       type: Boolean,
       default: false,
+    },
+    isActivo: {
+      type: Boolean,
+      default: true,
     },
   },
   {

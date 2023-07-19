@@ -43,6 +43,10 @@ const UsuarioSchema = Schema({
     type: Boolean,
     default: false,
   },
+  isActivo: {
+    type: Boolean,
+    default: true,
+  },
 },
 {
   timestamps: true,

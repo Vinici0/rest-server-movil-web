@@ -47,7 +47,6 @@ const grabarMensaje = async (payload) => {
 
 const grabarMensajeSala = async (payload) => {
   try {
-    console.log(payload);
     const { mensaje, de, para } = payload;
     const sala = await Sala.findById(para);
 
@@ -104,7 +103,6 @@ const grabarComentarioPublicacion = async (payload) => {
       return res.status(404).json({ error: "Publicación no encontrada" });
     }
 
-    // Crear el nuevo comentario
     const comentario = new Comentario({
       contenido: mensaje,
       usuario: usuarioId,
@@ -117,7 +115,6 @@ const grabarComentarioPublicacion = async (payload) => {
     publicacion.comentarios.push(comentario._id);
     await publicacion.save();
 
-    //retornar el id del comentario pero el id como string
     return comentario._id.toString();
   } catch (error) {
     console.error(error);

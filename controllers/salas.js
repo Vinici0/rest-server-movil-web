@@ -176,15 +176,14 @@ const obtenerSalasMensajesUsuario = async (req, res) => {
   }
 };
 
-const getSalesByUser = async (req, res) => {
+const getSalasByUser = async (req, res) => {
   const uid = req.uid;
   try {
     const salas = await Sala.find(
-      { usuarios: uid },
-      { nombre: 1, _id: 1, color: 1, codigo: 1 , propietario: 1}
-    )
+      { usuarios: uid, isActivo: true },
+      { nombre: 1, _id: 1, color: 1, codigo: 1, propietario: 1 }
+    );
 
-      
     const totalUsuarios = await Sala.find({ usuarios: uid }).countDocuments();
     res.json({
       ok: true,
@@ -265,7 +264,11 @@ const updateSala = async (req, res) => {
 const deleteSala = async (req, res) => {
   try {
     const { salaId } = req.params;
-    const sala = await Sala.findByIdAndDelete(salaId);
+    const sala = await Sala.findByIdAndUpdate(
+      salaId,
+      { isActivo: false },
+      { new: true }
+    );
 
     res.json({
       ok: true,
@@ -291,8 +294,6 @@ const obtenerUsuariosSala = async (req, res) => {
       },
     });
 
-    console.log(sala.usuarios);
-
     if (!sala) {
       return res.status(404).json({
         ok: false,
@@ -313,18 +314,105 @@ const obtenerUsuariosSala = async (req, res) => {
   }
 };
 
+const deleteUserById = async (req, res) => {
+  const { salaId, usuarioId } = req.params;
+  const uid = req.uid;
+  try {
+    const sala = await Sala.findById(salaId);
+
+    if (!sala) {
+      return res.status(404).json({
+        ok: false,
+        msg: "Sala no encontrada",
+      });
+    }
+
+    // Verificar si el usuario es el propietario de la sala
+    if (sala.propietario.toString() !== uid) {
+      return res.status(401).json({
+        ok: false,
+        msg: "No estás autorizado para realizar esta acción",
+      });
+    }
+
+    // Verificar si el usuario a eliminar existe en la sala
+    if (!sala.usuarios.includes(usuarioId)) {
+      return res.status(404).json({
+        ok: false,
+        msg: "Usuario no encontrado en la sala",
+      });
+    }
+
+    // Eliminar al usuario de la sala
+    sala.usuarios.pull(usuarioId);
+    await sala.save();
+
+    res.json({
+      ok: true,
+      msg: "Usuario eliminado exitosamente de la sala",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      msg: "Por favor hable con el administrador",
+    });
+  }
+};
+
+const abandonarSala = async (req, res) => {
+  const { salaId } = req.params;
+  const uid = req.uid;
+
+  try {
+    const sala = await Sala.findById(salaId);
+
+    if (!sala) {
+      return res.status(404).json({
+        ok: false,
+        msg: "Sala no encontrada",
+      });
+    }
+
+    // Verificar si el usuario está en la sala
+    if (!sala.usuarios.includes(uid)) {
+      return res.status(400).json({
+        ok: false,
+        msg: "El usuario no está en la sala",
+      });
+    }
+
+    // Quitar al usuario de la sala
+    sala.usuarios.pull(uid);
+    await sala.save();
+
+    res.json({
+      ok: true,
+      msg: "Usuario abandonó la sala exitosamente",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      msg: "Por favor hable con el administrador",
+    });
+  }
+};
+
 
 module.exports = {
+  abandonarSala,
   crearSala,
-  unirseSala,
-  obtenerMensajesSala,
-  grabarMensajeSala,
-  getSalas,
-  obtenerSalasMensajesUsuario,
-  getSalesByUser,
+  deleteSala,
+  deleteUserById,
   getMensajesBySala,
   getMensajesSala,
-  updateSala,
-  deleteSala,
+  getSalas,
+  getSalasByUser,
+  grabarMensajeSala,
+  obtenerMensajesSala,
+  obtenerSalasMensajesUsuario,
   obtenerUsuariosSala,
+  unirseSala,
+  updateSala,
 };

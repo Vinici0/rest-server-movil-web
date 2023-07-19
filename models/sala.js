@@ -23,6 +23,10 @@ const SalaSchema = Schema(
       type: Schema.Types.ObjectId,
       ref: "Usuario",
     },
+    isActivo: {
+      type: Boolean,
+      default: true,
+    },
     usuarios: [{ type: Schema.Types.ObjectId, ref: "Usuario" }],
     mensajes: [{ type: Schema.Types.ObjectId, ref: "Mensaje" }],
   },

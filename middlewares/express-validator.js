@@ -8,6 +8,7 @@ const validacionesCrearPublicacion = [
   check("latitud", "La latitud es obligatoria").not().isEmpty(),
   check("longitud", "La longitud es obligatoria").not().isEmpty(),
   check("titulo", "El título es obligatorio").not().isEmpty(),
+  check("nombreUsuario", "El nombre de usuario es obligatorio").not().isEmpty(),
 ];
 
 const validacionesUbicacion = [

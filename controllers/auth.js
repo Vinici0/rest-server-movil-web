@@ -44,7 +44,6 @@ const crearUsuario = async (req, res = response) => {
 const login = async (req, res = response) => {
   const { email, password, tokenApp } = req.body;
 
-  console.log(email, password);
   try {
     const usuarioDB = await Usuario.findOne({ email }).populate(
       "ubicaciones",
@@ -117,7 +116,7 @@ const googleAuth = async (req, res = response) => {
       const data = {
         nombre: googleUser.name,
         tokenApp: tokenApp,
-        email,
+        email: googleUser.email,
         password: "@@@",
         img: googleUser.picture,
         google: true,

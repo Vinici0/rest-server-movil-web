@@ -42,13 +42,11 @@ io.on("connection", (client) => {
 
   client.on("mensaje-grupal", async (payload) => {
     grabarMensajeSala(payload);
-    console.log(payload);
     client.broadcast.to(payload.para).emit("mensaje-grupal", payload);
   });
 
   client.on("comentario-publicacion", async (payload) => {
-    const uid = await grabarComentarioPublicacion(payload);
-    payload = { ...payload, uid: uid };
+    grabarComentarioPublicacion(payload);
     client.broadcast.to(payload.para).emit("comentario-publicacion", payload);
   });
   

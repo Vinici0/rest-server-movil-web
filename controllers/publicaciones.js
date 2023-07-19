@@ -1,10 +1,10 @@
 const { calcularDistancia } = require("../helpers/calcular-distancia");
 const { enviarNotificacion } = require("../helpers/enviar-notificacion");
-const {  subirArchivoPublicacion } = require("../helpers/subir-archivo");
+const { subirArchivoPublicacion } = require("../helpers/subir-archivo");
 const { Usuario, Publicacion } = require("../models");
 
 const obtenerPublicacionesUsuario = async (req, res) => {
-  const usuarioId = req.uid; 
+  const usuarioId = req.uid;
   try {
     const publicaciones = await Publicacion.find({ usuario: usuarioId });
 
@@ -36,6 +36,7 @@ const guardarPublicacion = async (req, res) => {
     imgAlerta,
     latitud,
     longitud,
+    nombreUsuario,
   } = req.body;
 
   try {
@@ -51,9 +52,10 @@ const guardarPublicacion = async (req, res) => {
       imgAlerta,
       latitud,
       longitud,
+      nombreUsuario,
     });
-
     await publicacion.save();
+    console.log(publicacion, "publicacion");
 
     res.json({
       ok: true,
@@ -164,10 +166,10 @@ const getPublicacionesEnRadio = async (req, res) => {
     let publicacionesEnRadio;
 
     if (usuario.ubicaciones.length > 0) {
-      // Si el usuario tiene latitud y longitud en al menos una dirección, filtrar las publicaciones dentro del radio
       publicacionesEnRadio = await Publicacion.find({
         latitud: { $exists: true },
         longitud: { $exists: true },
+        isActivo: true,
       })
         .sort({ createdAt: -1 })
         .skip(Number(desde));
@@ -185,27 +187,16 @@ const getPublicacionesEnRadio = async (req, res) => {
         });
       });
     } else {
-      // Si el usuario no tiene latitud y longitud en ninguna dirección, obtener todas las publicaciones
-      //ordenadas por fecha de creación
-      publicacionesEnRadio = await Publicacion.find()
+      publicacionesEnRadio = await Publicacion.find({ isActivo: true })
         .sort({ createdAt: -1 })
         .skip(Number(desde));
     }
 
-    //agrega el nombre del usuario a cada publicacion
-    let publicacionesEnRadio2 = publicacionesEnRadio.map((publicacion) => {
-      return {
-        ...publicacion._doc,
-        usuarioNombre: usuario.nombre,
-        uid: publicacion._id,
-      };
-    });
-
-    publicacionesEnRadio2 = publicacionesEnRadio2.slice(0, Number(limite));
+    publicacionesEnRadio = publicacionesEnRadio.slice(0, Number(limite));
 
     res.json({
       ok: true,
-      publicaciones: publicacionesEnRadio2,
+      publicaciones: publicacionesEnRadio,
     });
   } catch (error) {
     console.error(error);
@@ -366,8 +357,6 @@ const likePublicacion = async (req, res) => {
     res.status(500).json({ error: "Error al gestionar el like" });
   }
 };
-
-
 
 module.exports = {
   obtenerPublicacionesUsuario,
