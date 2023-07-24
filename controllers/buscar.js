@@ -54,7 +54,7 @@ const buscarUbicaciones = async (
     });
   }
 
-  const { limite = 5, desde = 0 } = req.query;
+  const { limite = 88, desde = 0 } = req.query;
   const regex = new RegExp(termino, "i");
 
   const ubicaciones = await Ubicacion.find({

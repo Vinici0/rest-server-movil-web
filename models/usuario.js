@@ -47,6 +47,12 @@ const UsuarioSchema = Schema({
     type: Boolean,
     default: true,
   },
+  salas: [
+    {
+      salaId: { type: Schema.Types.ObjectId, ref: "Sala" },
+      mensajesNoLeidos: [{ type: Schema.Types.ObjectId, ref: "Mensaje" }],
+    },
+  ],
 },
 {
   timestamps: true,

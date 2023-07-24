@@ -39,6 +39,7 @@ app.use("/api/salas", require("./routes/salas"));
 app.use("/api/ubicaciones", require("./routes/ubicaciones"));
 app.use("/api/uploads", require("./routes/uploads"));
 app.use("/api/usuarios", require("./routes/usuarios"));
+app.use("/api/reportes", require("./routes/reportes"));
 
 
 server.listen(process.env.PORT, (err) => {
