@@ -13,6 +13,8 @@ const {
   deleteUserById,
   getSalasByUser,
   abandonarSala,
+  obtenerSalasConMensajesNoLeidos,
+  cambiarEstadoSala,
 } = require("../controllers/salas");
 
 const { validarJWT } = require("../middlewares/validar-jwt");
@@ -31,6 +33,11 @@ router.post("/grabar-mensaje", validarJWT, grabarMensajeSala);
 
 router.post("/unir-sala", validarJWT, unirseSala);
 
+// obtenerSalasConMensajesNoLeidos
+router.get("/obtener-salas-mensajes-usuario", validarJWT, obtenerSalasConMensajesNoLeidos);
+
+router.put("/cambiar-estado-sala/:salaId", validarJWT, cambiarEstadoSala);
+
 router.get(
   "/obtener-salas-mensajes-usuario",
   validarJWT,
@@ -48,5 +55,7 @@ router.get("/obtener-usuarios-sala/:salaId", validarJWT, obtenerUsuariosSala);
 router.delete("/delete-user/:salaId/:usuarioId", validarJWT, deleteUserById);
 
 router.delete("/abandonar-sala/:salaId", validarJWT, abandonarSala);
+
+// router.get("/obtener-mensajes-no-leidos/:salaId", validarJWT, obtenerMensajesNoLeidosPorUsuario);
 
 module.exports = router;

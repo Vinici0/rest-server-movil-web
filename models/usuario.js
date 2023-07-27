@@ -43,6 +43,10 @@ const UsuarioSchema = Schema({
     type: Boolean,
     default: false,
   },
+  isOpenRoom: {
+    type: Boolean,
+    default: false,
+  },
   isActivo: {
     type: Boolean,
     default: true,
@@ -50,7 +54,9 @@ const UsuarioSchema = Schema({
   salas: [
     {
       salaId: { type: Schema.Types.ObjectId, ref: "Sala" },
-      mensajesNoLeidos: [{ type: Schema.Types.ObjectId, ref: "Mensaje" }],
+      mensajesNoLeidos: { type: Number, default: 0 },
+      ultimaVezActivo: { type: Date, default: null },
+      isRoomOpen: { type: Boolean, default: false },
     },
   ],
 },

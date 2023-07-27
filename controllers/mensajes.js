@@ -25,6 +25,7 @@ const getAllMessages = async (req, res) => {
 const getMensajeByRoom = async (req, res) => {
   const { salaId } = req.params;
   const { limite = 50, desde = 0 } = req.query;
+  const usuarioId = req.uid;
 
   try {
     const sala = await Sala.findById(salaId)
@@ -36,7 +37,7 @@ const getMensajeByRoom = async (req, res) => {
           sort: { createdAt: -1 },
         },
       })
-      .lean(); 
+      .lean();
 
     const mensajesSala = await Promise.all(
       sala.mensajes.map(async (mensaje) => {
@@ -45,6 +46,18 @@ const getMensajeByRoom = async (req, res) => {
         return mensaje;
       })
     );
+
+    // Obtener al usuario que está viendo los mensajes de la sala
+    const usuario = await Usuario.findById(usuarioId);
+
+    // Encontrar la entrada correspondiente en la lista de salas del usuario para la sala específica
+    const salaUsuario = usuario.salas.find((salaUsuario) => salaUsuario.salaId.toString() === salaId);
+
+    // Reiniciar el contador de mensajes no leídos (mensajesNoLeidos) a cero para esa entrada
+    if (salaUsuario) {
+      salaUsuario.mensajesNoLeidos = 0;
+      await usuario.save(); // Guardar los cambios en el usuario en la base de datos
+    }
 
     res.json({
       ok: true,
@@ -58,6 +71,7 @@ const getMensajeByRoom = async (req, res) => {
     });
   }
 };
+
 
 
 const getMensajeByRoom2 = async (req, res) => {

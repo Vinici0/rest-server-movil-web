@@ -19,7 +19,7 @@ const getUsuarios = async (req, res = response) => {
 const actualizarUsuario = async (req, res) => {
   const uid = req.uid;
   console.log(uid, "uid");
-  const { nombre, email, online, password, telefono, ...resto } = req.body;
+  const { nombre, email, online, password, telefono,  ...resto } = req.body;
 
   try {
     // Busca y actualiza el usuario por su ID
@@ -37,6 +37,32 @@ const actualizarUsuario = async (req, res) => {
     });
   }
 };
+
+const actualizarIsOpenRoom = async (req, res) => {
+  const uid = req.uid;
+  const { isOpenRoom } = req.body;
+
+  try {
+    // Busca y actualiza el usuario por su ID
+    const usuario = await Usuario.findByIdAndUpdate(
+      uid,
+      { isOpenRoom },
+      { new: true }
+    );
+
+    res.json({
+      ok: true,
+      usuario,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      msg: "Por favor hable con el administrador",
+    });
+  }
+};
+
 
 const actualizarTelefonoOrNombre = async (req, res) => {
   const uid = req.uid;
@@ -221,5 +247,6 @@ module.exports = {
   agregarTelefono,
   eliminarTelefono,
   enviarNotificacionesArrayTelefonos,
-  actualizarTelefonoOrNombre
+  actualizarTelefonoOrNombre,
+  actualizarIsOpenRoom
 };
