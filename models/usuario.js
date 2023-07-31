@@ -19,7 +19,7 @@ const UsuarioSchema = Schema({
       type: Schema.Types.ObjectId,
       ref: "Ubicacion",
     },
-  ],
+  ],  
   telefono: {
     type: String,
   },
@@ -50,6 +50,10 @@ const UsuarioSchema = Schema({
   isActivo: {
     type: Boolean,
     default: true,
+  },
+  isPublicacionPendiente: {
+    type: Boolean,
+    default: false,
   },
   salas: [
     {

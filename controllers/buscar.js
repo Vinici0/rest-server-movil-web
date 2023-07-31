@@ -54,7 +54,7 @@ const buscarUbicaciones = async (
     });
   }
 
-  const { limite = 88, desde = 0 } = req.query;
+  const { limite = 6, desde = 0 } = req.query;
   const regex = new RegExp(termino, "i");
 
   const ubicaciones = await Ubicacion.find({
@@ -63,6 +63,7 @@ const buscarUbicaciones = async (
       { ciudad: regex },
       { parroquia: regex },
       { pais: regex },
+      { referencia: regex },
     ],
     $and: [{ estado: true }],
   })

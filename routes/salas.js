@@ -27,7 +27,7 @@ router.get("/", getSalas);
 
 router.put("/:salaId", updateSala);
 
-router.delete("/:salaId", deleteSala);
+router.delete("/:salaId", validarJWT,deleteSala);
 
 router.post("/grabar-mensaje", validarJWT, grabarMensajeSala);
 

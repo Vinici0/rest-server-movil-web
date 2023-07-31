@@ -45,7 +45,7 @@ const grabarMensaje = async (payload) => {
   }
 };
 
-const grabarMensajeSala = async (payload) => {
+const grabarMensajeSala2 = async (payload) => {
   try {
     const { mensaje, de, para } = payload;
     const sala = await Sala.findById(para);
@@ -63,6 +63,57 @@ const grabarMensajeSala = async (payload) => {
   }
 };
 
+const grabarMensajeSala = async (payload) => {
+  try {
+    const { mensaje, de, para } = payload;
+
+    const newMessage = new Mensaje({ mensaje, usuario: de });
+    await newMessage.save();
+
+    const sala = await Sala.findById(para);
+    sala.mensajes.push(newMessage._id);
+    await sala.save();
+
+    const usuariosEnGrupoOffline = await obtenerUsuariosSalaHelper(para);
+
+    // Actualizar la cantidad de mensajes no leídos solo para los usuarios offline en el grupo
+    for (const usuario of usuariosEnGrupoOffline) {
+      // Skip the sender of the message from having their mensajesNoLeidos incremented
+      if (usuario._id.toString() === de) {
+        continue;
+      }
+
+      usuario.salas = usuario.salas.map((sala) => {
+        if (sala.salaId.toString() === para) {
+          sala.mensajesNoLeidos++;
+          sala.ultimaVezActivo = new Date();
+        }
+
+        return sala;
+      });
+
+      await usuario.save();
+    }
+
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
+
+const obtenerUsuariosSalaHelper = async (salaId) => {
+  try {
+    const usuariosEnSala = await Usuario.find({
+      "salas.salaId": salaId,
+      "salas.isRoomOpen": false,
+    });
+    return usuariosEnSala;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
 //grabarComentarioPublicacion
 // const grabarComentarioPublicacion = async (payload) => {
 //   try {

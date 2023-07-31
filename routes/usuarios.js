@@ -11,6 +11,7 @@ const {
   getUsuarios,
   actualizarTelefonoOrNombre,
   actualizarIsOpenRoom,
+  marcarPublicacionPendienteFalse,
 } = require("../controllers/usuarios");
 
 const router = Router();
@@ -24,5 +25,6 @@ router.put("/add-direccion", validarJWT, agregarDireccion);
 router.put("/add-telefono", validarJWT, agregarTelefono );
 router.put("/add-telefonos", validarJWT, ageregarTelefonos );
 router.put("/add-telefono-nombre", validarJWT, actualizarTelefonoOrNombre );
+router.put("/marcar-publicacion-pendiente-false", validarJWT, marcarPublicacionPendienteFalse );
 
 module.exports = router;

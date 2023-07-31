@@ -47,7 +47,7 @@ const login = async (req, res = response) => {
   try {
     const usuarioDB = await Usuario.findOne({ email }).populate(
       "ubicaciones",
-      "latitud longitud ciudad pais barrio"
+      "latitud longitud ciudad pais barrio updatedAt createdAt estado _id"
     ).exec();
     if (!usuarioDB) {
       return res.status(404).json({
@@ -108,7 +108,7 @@ const googleAuth = async (req, res = response) => {
 
     let usuarioDB = await Usuario.findOne({ email }).populate(
       "ubicaciones",
-      "latitud longitud ciudad pais barrio"
+      "latitud longitud ciudad pais barrio updatedAt createdAt estado _id"
     );
 
     if (!usuarioDB) {
@@ -142,25 +142,39 @@ const googleAuth = async (req, res = response) => {
     });
   }
 };
-
 const renewToken = async (req, res = response) => {
   try {
     const uid = req.uid;
 
-    // generar un nuevo JWT, generarJWT... uid...
+    // Generar un nuevo JWT usando el UID del usuario
     const token = await generarJWT(uid);
 
-    // Obtener el usuario por el UID, Usuario.findById...
-    const usuario = await Usuario.findById(uid).populate(
+    // Obtener el usuario por el UID desde la base de datos
+    const usuarioDB = await Usuario.findById(uid).populate(
       "ubicaciones",
-      "latitud longitud ciudad pais barrio"
+      "latitud longitud ciudad pais barrio updatedAt createdAt estado _id"
     );
 
-    usuario.ubicaciones.uid = usuario.ubicaciones._id;
+    if (!usuarioDB) {
+      return res.status(404).json({
+        ok: false,
+        msg: "Usuario no encontrado",
+      });
+    }
 
+    // Obtener el token de dispositivo (tokenApp) desde la solicitud
+    const { tokenApp } = req.body;
+
+    // Actualizar el token de dispositivo si se proporciona en la solicitud
+    if (tokenApp) {
+      usuarioDB.tokenApp = tokenApp;
+      await usuarioDB.save();
+    }
+
+    // Devolver la respuesta con el nuevo token JWT y los datos del usuario
     res.json({
       ok: true,
-      usuario,
+      usuario: usuarioDB,
       token,
     });
   } catch (error) {
@@ -171,6 +185,7 @@ const renewToken = async (req, res = response) => {
     });
   }
 };
+
 
 
 module.exports = {

@@ -235,6 +235,25 @@ const enviarNotificacionesArrayTelefonos = async (req, res) => {
 };
 
 
+const marcarPublicacionPendienteFalse = async (req, res) => {
+  const idUsuario = req.uid;
+
+  try {
+    const usuario = await Usuario.findById(idUsuario);
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+    usuario.isPublicacionPendiente = false;
+    await usuario.save();
+
+    res.status(200).json({ mensaje: "Campo isPublicacionPendiente actualizado a false", usuario });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: "Error al actualizar el campo isPublicacionPendiente" });
+  }
+};
+
 
 
 
@@ -248,5 +267,6 @@ module.exports = {
   eliminarTelefono,
   enviarNotificacionesArrayTelefonos,
   actualizarTelefonoOrNombre,
-  actualizarIsOpenRoom
+  actualizarIsOpenRoom,
+  marcarPublicacionPendienteFalse
 };

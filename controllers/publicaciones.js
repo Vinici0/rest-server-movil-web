@@ -20,7 +20,6 @@ const obtenerPublicacionesUsuario = async (req, res) => {
     });
   }
 };
-
 const guardarPublicacion = async (req, res) => {
   const radio = 2;
   const usuarioId = req.uid;
@@ -84,6 +83,13 @@ const guardarPublicacion = async (req, res) => {
       .map((usuario) => usuario.tokenApp);
 
     console.log(tokens, "tokens");
+
+    // Actualizar el campo isPublicacionPendiente a true para todos los usuarios en usuariosEnRadio
+    for (const usuario of usuariosEnRadio) {
+      usuario.isPublicacionPendiente = true;
+      await usuario.save();
+    }
+
     await enviarNotificacion(tokens, titulo, contenido);
   } catch (error) {
     console.log(error);
@@ -93,6 +99,7 @@ const guardarPublicacion = async (req, res) => {
     });
   }
 };
+
 
 const guardarListArchivo = async (req, res) => {
   const nombres = [];

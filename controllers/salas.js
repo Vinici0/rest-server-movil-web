@@ -29,6 +29,8 @@ const obtenerMensajesSala = async (req, res) => {
   }
 };
 
+// Paso 2: Modificar el controlador crearSala
+
 const crearSala = async (req, res) => {
   const { nombre } = req.body;
   let codigo;
@@ -39,21 +41,28 @@ const crearSala = async (req, res) => {
     salaExistente = await Sala.findOne({ codigo });
   } while (salaExistente);
 
-  const colorRandom = Array.from({ length: 3 }, () =>
-    Math.floor(Math.random() * 256)
-  ); // Generar tres valores aleatorios entre 0 y 255 para los componentes de color
-  const color = colorRandom.reduce(
-    (acc, curr) => acc + curr.toString(16).padStart(2, "0")
-  ); // Convertir el color resultante a formato hexadecimal
+  const colorRandom = Array.from({ length: 3 }, () => Math.floor(Math.random() * 256));
+  const color = colorRandom.reduce((acc, curr) => acc + curr.toString(16).padStart(2, "0"));
 
   try {
     const sala = new Sala({ nombre, codigo, color, propietario: req.uid });
 
-    const uid = req.uid;
-    sala.usuarios.push(uid);
+    // Agregar el uid del creador a la lista de usuarios de la sala
+    sala.usuarios.push(req.uid);
+
     await sala.save();
 
-    //agrega el uid del usuario a la sala con el nombre de idUsuario
+    // Agregar la sala creada a la lista de salas del usuario
+    const usuario = await Usuario.findById(req.uid);
+    usuario.salas.push({
+      salaId: sala._id,
+      mensajesNoLeidos: 0,
+      ultimaVezActivo: null,
+      isRoomOpen: false,
+    });
+    await usuario.save();
+
+    const uid = req.uid;
     const salaResponse = _.pick(sala.toObject(), [
       "nombre",
       "codigo",
@@ -63,7 +72,6 @@ const crearSala = async (req, res) => {
       "propietario",
       "_id",
     ]);
-    //total de usuarios en la sala
     salaResponse.totalUsuarios = sala.usuarios.length;
     salaResponse.idUsuario = uid;
     res.json({
@@ -78,6 +86,7 @@ const crearSala = async (req, res) => {
     });
   }
 };
+
 
 const unirseSala = async (req, res) => {
   const { codigo } = req.body;
@@ -118,7 +127,6 @@ const unirseSala = async (req, res) => {
       "nombre",
       "codigo",
       "color",
-      "mensajes",
       "usuarios",
       "propietario",
       "_id",
@@ -419,15 +427,42 @@ const updateSala = async (req, res) => {
 const deleteSala = async (req, res) => {
   try {
     const { salaId } = req.params;
-    const sala = await Sala.findByIdAndUpdate(
-      salaId,
-      { isActivo: false },
-      { new: true }
+
+    // Find the room by its ID
+    const sala = await Sala.findById(salaId);
+
+    if (!sala) {
+      return res.status(404).json({
+        ok: false,
+        msg: "Sala no encontrada",
+      });
+    }
+
+    // Check if the user is the owner of the room
+    if (sala.propietario.toString() !== req.uid) {
+      return res.status(401).json({
+        ok: false,
+        msg: "No estás autorizado para eliminar esta sala",
+      });
+    }
+
+    // Delete the room from the Sala collection
+    await Sala.findByIdAndDelete(salaId);
+
+    // Delete the room from the list of rooms for all users
+    await Usuario.updateMany(
+      { "salas.salaId": salaId },
+      { 
+        $pull: { 
+          salas: { salaId: salaId },
+          mensajes: { _id: { $in: sala.mensajes } } // Remove messages associated with the room
+        } 
+      }
     );
 
     res.json({
       ok: true,
-      sala,
+      msg: "Sala eliminada exitosamente",
     });
   } catch (error) {
     console.log(error);
@@ -437,6 +472,7 @@ const deleteSala = async (req, res) => {
     });
   }
 };
+
 
 const obtenerUsuariosSala = async (req, res) => {
   const { salaId } = req.params;
@@ -472,7 +508,9 @@ const obtenerUsuariosSala = async (req, res) => {
 const deleteUserById = async (req, res) => {
   const { salaId, usuarioId } = req.params;
   const uid = req.uid;
+
   try {
+    // Buscar la sala por su ID
     const sala = await Sala.findById(salaId);
 
     if (!sala) {
@@ -515,31 +553,19 @@ const deleteUserById = async (req, res) => {
   }
 };
 
+
 const abandonarSala = async (req, res) => {
   const { salaId } = req.params;
   const uid = req.uid;
 
   try {
-    const sala = await Sala.findById(salaId);
+    // Buscar al usuario por su ID
+    const usuario = await Usuario.findById(uid);
 
-    if (!sala) {
-      return res.status(404).json({
-        ok: false,
-        msg: "Sala no encontrada",
-      });
-    }
+    // Filtrar las salas del usuario y guardar los cambios
+    usuario.salas = usuario.salas.filter((sala) => !sala.salaId.equals(salaId));
 
-    // Verificar si el usuario está en la sala
-    if (!sala.usuarios.includes(uid)) {
-      return res.status(400).json({
-        ok: false,
-        msg: "El usuario no está en la sala",
-      });
-    }
-
-    // Quitar al usuario de la sala
-    sala.usuarios.pull(uid);
-    await sala.save();
+    await usuario.save();
 
     res.json({
       ok: true,
@@ -554,11 +580,15 @@ const abandonarSala = async (req, res) => {
   }
 };
 
+
+
+
+
 module.exports = {
   abandonarSala,
-  crearSala,
   deleteSala,
   deleteUserById,
+  crearSala,
   getMensajesBySala,
   getMensajesSala,
   getSalas,

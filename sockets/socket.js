@@ -46,7 +46,6 @@ io.on("connection", (client) => {
   });
 
   client.on("comentario-publicacion", async (payload) => {
-    grabarComentarioPublicacion(payload);
     client.broadcast.to(payload.para).emit("comentario-publicacion", payload);
   });
   

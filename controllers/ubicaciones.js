@@ -85,10 +85,9 @@ const agregarUbicacion = async (req, res = response) => {
     usuario.ubicaciones.push(ubicacionId);
     await usuario.save();
 
-    res.json({
-      ok: true,
+    res.json(
       ubicacion,
-    });
+    );
   } catch (error) {
     console.log(error);
     res.status(500).json({
