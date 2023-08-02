@@ -21,7 +21,9 @@
     "google-auth-library": "^8.8.0",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
+    "moment": "^2.29.4",
     "mongoose": "^6.6.5",
+    "pdfkit": "^0.13.0",
     "socket.io": "^4.7.1",
     "uuid": "^9.0.0"
   }
