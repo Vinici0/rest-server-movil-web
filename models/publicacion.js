@@ -22,7 +22,7 @@ const PublicacionSchema = Schema(
     barrio: {
       type: String,
       required: true,
-    },
+    },  
     isPublic: {
       type: Boolean,
       default: true,

@@ -1,6 +1,6 @@
 const { response } = require("express");
 const { Usuario } = require("../models");
-const { enviarNotificacion } = require("../helpers/enviar-notificacion");
+const { enviarNotificacion, guardarNotificacionSOS } = require("../helpers/enviar-notificacion");
 
 const getUsuarios = async (req, res = response) => {
   const desde = Number(req.query.desde) || 0;
@@ -19,7 +19,7 @@ const getUsuarios = async (req, res = response) => {
 const actualizarUsuario = async (req, res) => {
   const uid = req.uid;
   console.log(uid, "uid");
-  const { nombre, email, online, password, telefono,  ...resto } = req.body;
+  const { nombre, email, online, password, telefono, ...resto } = req.body;
 
   try {
     // Busca y actualiza el usuario por su ID
@@ -63,7 +63,6 @@ const actualizarIsOpenRoom = async (req, res) => {
   }
 };
 
-
 const actualizarTelefonoOrNombre = async (req, res) => {
   const uid = req.uid;
   const { nombre, telefono } = req.body;
@@ -89,7 +88,6 @@ const actualizarTelefonoOrNombre = async (req, res) => {
     });
   }
 };
-
 
 // Controlador para agregar una nueva dirección a un usuario
 const agregarDireccion = async (req, res) => {
@@ -118,7 +116,6 @@ const agregarDireccion = async (req, res) => {
     res.status(500).json({ mensaje: "Error al agregar la dirección" });
   }
 };
-
 
 const ageregarTelefonos = async (req, res) => {
   const idUsuario = req.uid;
@@ -180,7 +177,6 @@ const eliminarTelefono = async (req, res) => {
   }
 };
 
-
 const agregarTelefono = async (req, res) => {
   const idUsuario = req.uid;
   const { telefono } = req.body;
@@ -207,7 +203,10 @@ const enviarNotificacionesArrayTelefonos = async (req, res) => {
   const { lat, lng } = req.body;
 
   try {
-    const usuario = await Usuario.findById(idUsuario).populate("ubicaciones", "latitud longitud");
+    const usuario = await Usuario.findById(idUsuario).populate(
+      "ubicaciones",
+      "latitud longitud"
+    );
 
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado" });
@@ -220,20 +219,30 @@ const enviarNotificacionesArrayTelefonos = async (req, res) => {
 
     const telefonos = usuario.telefonos; // Obtener el arreglo de teléfonos del usuario
 
-    const usuariosConTelefono = await Usuario.find({ telefono: { $in: telefonos } });
+    const usuariosConTelefono = await Usuario.find({
+      telefono: { $in: telefonos },
+    });
     const tokens = usuariosConTelefono.map((usuario) => usuario.tokenApp);
 
     const titulo = `${usuario.nombre} necesita ayuda`;
     const contenido = "Presiona para ver la ubicación";
     await enviarNotificacion(tokens, titulo, contenido, data);
 
-    res.status(200).json({ mensaje: "Notificación enviada", usuarios: usuariosConTelefono });
+    for (const usuarioDestino of usuariosConTelefono) {
+      await guardarNotificacionSOS(
+        usuarioDestino._id,
+        contenido,
+        usuario.telefono
+      );
+    }
+    res
+      .status(200)
+      .json({ mensaje: "Notificación enviada", usuarios: usuariosConTelefono });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ mensaje: "Error al enviar la notificación" });
+    res.status(500).json({ mensaje: "Error al enviar la notificación"});
   }
 };
-
 
 const marcarPublicacionPendienteFalse = async (req, res) => {
   const idUsuario = req.uid;
@@ -247,16 +256,19 @@ const marcarPublicacionPendienteFalse = async (req, res) => {
     usuario.isPublicacionPendiente = false;
     await usuario.save();
 
-    res.status(200).json({ mensaje: "Campo isPublicacionPendiente actualizado a false", usuario });
+    res
+      .status(200)
+      .json({
+        mensaje: "Campo isPublicacionPendiente actualizado a false",
+        usuario,
+      });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ mensaje: "Error al actualizar el campo isPublicacionPendiente" });
+    res
+      .status(500)
+      .json({ mensaje: "Error al actualizar el campo isPublicacionPendiente" });
   }
 };
-
-
-
-
 
 module.exports = {
   getUsuarios,
@@ -268,5 +280,5 @@ module.exports = {
   enviarNotificacionesArrayTelefonos,
   actualizarTelefonoOrNombre,
   actualizarIsOpenRoom,
-  marcarPublicacionPendienteFalse
+  marcarPublicacionPendienteFalse,
 };

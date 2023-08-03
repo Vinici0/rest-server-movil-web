@@ -1,5 +1,5 @@
 const { calcularDistancia } = require("../helpers/calcular-distancia");
-const { enviarNotificacion } = require("../helpers/enviar-notificacion");
+const { enviarNotificacion, guardarNotificacionPublicacion } = require("../helpers/enviar-notificacion");
 const { subirArchivoPublicacion } = require("../helpers/subir-archivo");
 const { Usuario, Publicacion } = require("../models");
 
@@ -91,6 +91,10 @@ const guardarPublicacion = async (req, res) => {
     }
 
     await enviarNotificacion(tokens, titulo, contenido);
+
+    // Guardar la notificación relacionada con la publicación
+    await guardarNotificacionPublicacion( usuarioId, contenido, publicacion._id);
+    
   } catch (error) {
     console.log(error);
     res.status(500).json({

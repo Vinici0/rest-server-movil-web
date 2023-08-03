@@ -40,6 +40,7 @@ app.use("/api/ubicaciones", require("./routes/ubicaciones"));
 app.use("/api/uploads", require("./routes/uploads"));
 app.use("/api/usuarios", require("./routes/usuarios"));
 app.use("/api/reportes", require("./routes/reportes"));
+app.use("/api/notificacion", require("./routes/notificaciones"));
 
 
 server.listen(process.env.PORT, (err) => {

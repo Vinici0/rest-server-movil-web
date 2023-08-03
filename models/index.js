@@ -4,6 +4,7 @@ const Usuario = require("./usuario");
 const Ubicacion = require("./ubicacion");
 const Mensaje = require("./mensaje");
 const Sala = require("./sala");
+const Notificacion = require("./notificacion");
 
 module.exports = { 
     Comentario,
@@ -11,5 +12,6 @@ module.exports = {
     Usuario,
     Ubicacion,
     Mensaje,
-    Sala
+    Sala,
+    Notificacion
 }

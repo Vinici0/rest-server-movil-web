@@ -1,4 +1,5 @@
 const axios = require("axios");
+const { guardarNotificacion } = require("../controllers/notificaciones");
 
 const enviarNotificacion = async (tokens, titulo, desc, usuario = {}) => {
   if (tokens.length === 0) {
@@ -42,6 +43,55 @@ const enviarNotificacion = async (tokens, titulo, desc, usuario = {}) => {
   }
 };
 
+
+// Controlador para guardar una notificación relacionada con una publicación
+const guardarNotificacionPublicacion = async (
+  usuario,
+  mensaje,
+  publicacionId
+) => {
+  try {
+    const notificacion = await guardarNotificacion(
+      "publicacion",
+      usuario,
+      mensaje,
+      publicacionId
+    );
+
+
+    return notificacion;
+  } catch (error) {
+    console.log(error);
+    throw new Error("Error al guardar la notificación de publicación");
+  }
+};
+
+// Controlador para guardar una notificación relacionada con una solicitud
+const guardarNotificacionSOS = async (
+  usuario,
+  mensaje,
+  telefonoUsuario
+) => {
+  try {
+    const notificacion = await guardarNotificacion(
+      "sos",
+      usuario,
+      mensaje,
+      null,
+      telefonoUsuario
+    );
+
+    return notificacion;
+  } catch (error) {
+    console.log(error);
+    throw new Error("Error al guardar la notificación de solicitud");
+  }
+};
+
+
+
 module.exports = {
     enviarNotificacion,
+    guardarNotificacionPublicacion,
+    guardarNotificacionSOS
 };
