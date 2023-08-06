@@ -66,7 +66,7 @@ const grabarMensajeSala2 = async (payload) => {
 const grabarMensajeSala = async (payload) => {
   try {
     const { mensaje, de, para } = payload;
-
+    console.log(payload);
     const newMessage = new Mensaje({ mensaje, usuario: de });
     await newMessage.save();
 
@@ -78,10 +78,13 @@ const grabarMensajeSala = async (payload) => {
 
     // Actualizar la cantidad de mensajes no leídos solo para los usuarios offline en el grupo
     for (const usuario of usuariosEnGrupoOffline) {
-      // Skip the sender of the message from having their mensajesNoLeidos incremented
+      // Skip the sender of the message from having their mensajesNoLeidos incr emented
       if (usuario._id.toString() === de) {
         continue;
       }
+
+      //actualizar isSalasPendiente a true
+      usuario.isSalasPendiente = true;
 
       usuario.salas = usuario.salas.map((sala) => {
         if (sala.salaId.toString() === para) {

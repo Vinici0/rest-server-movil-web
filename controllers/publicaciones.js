@@ -1,5 +1,8 @@
 const { calcularDistancia } = require("../helpers/calcular-distancia");
-const { enviarNotificacion, guardarNotificacionPublicacion } = require("../helpers/enviar-notificacion");
+const {
+  enviarNotificacion,
+  guardarNotificacionPublicacion,
+} = require("../helpers/enviar-notificacion");
 const { subirArchivoPublicacion } = require("../helpers/subir-archivo");
 const { Usuario, Publicacion } = require("../models");
 
@@ -54,7 +57,6 @@ const guardarPublicacion = async (req, res) => {
       nombreUsuario,
     });
     await publicacion.save();
-    console.log(publicacion, "publicacion");
 
     res.json({
       ok: true,
@@ -82,8 +84,6 @@ const guardarPublicacion = async (req, res) => {
       .filter((usuario) => usuario._id.toString() !== usuarioId.toString())
       .map((usuario) => usuario.tokenApp);
 
-    console.log(tokens, "tokens");
-
     // Actualizar el campo isPublicacionPendiente a true para todos los usuarios en usuariosEnRadio
     for (const usuario of usuariosEnRadio) {
       usuario.isPublicacionPendiente = true;
@@ -92,9 +92,17 @@ const guardarPublicacion = async (req, res) => {
 
     await enviarNotificacion(tokens, titulo, contenido);
 
-    // Guardar la notificación relacionada con la publicación
-    await guardarNotificacionPublicacion( usuarioId, contenido, publicacion._id);
-    
+    // Guardar la notificación relacionada con la publicación a todos los usuarios en usuariosEnRadio
+    for (const usuario of usuariosEnRadio) {
+      await guardarNotificacionPublicacion(
+        usuario._id,
+        contenido,
+        publicacion._id,
+        latitud,
+        longitud,
+        usuarioId  
+      );
+    }
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -103,7 +111,6 @@ const guardarPublicacion = async (req, res) => {
     });
   }
 };
-
 
 const guardarListArchivo = async (req, res) => {
   const nombres = [];

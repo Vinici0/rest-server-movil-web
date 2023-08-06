@@ -1,6 +1,9 @@
 const { response } = require("express");
 const { Usuario } = require("../models");
-const { enviarNotificacion, guardarNotificacionSOS } = require("../helpers/enviar-notificacion");
+const {
+  enviarNotificacion,
+  guardarNotificacionSOS,
+} = require("../helpers/enviar-notificacion");
 
 const getUsuarios = async (req, res = response) => {
   const desde = Number(req.query.desde) || 0;
@@ -18,7 +21,6 @@ const getUsuarios = async (req, res = response) => {
 
 const actualizarUsuario = async (req, res) => {
   const uid = req.uid;
-  console.log(uid, "uid");
   const { nombre, email, online, password, telefono, ...resto } = req.body;
 
   try {
@@ -66,8 +68,6 @@ const actualizarIsOpenRoom = async (req, res) => {
 const actualizarTelefonoOrNombre = async (req, res) => {
   const uid = req.uid;
   const { nombre, telefono } = req.body;
-  console.log(nombre, telefono);
-
   try {
     // Busca y actualiza el usuario por su ID
     const usuario = await Usuario.findByIdAndUpdate(
@@ -215,6 +215,8 @@ const enviarNotificacionesArrayTelefonos = async (req, res) => {
       nombre: usuario.nombre,
       latitud: lat,
       longitud: lng,
+      img: usuario.img,
+      google: usuario.google,
     };
 
     const telefonos = usuario.telefonos; // Obtener el arreglo de teléfonos del usuario
@@ -232,7 +234,10 @@ const enviarNotificacionesArrayTelefonos = async (req, res) => {
       await guardarNotificacionSOS(
         usuarioDestino._id,
         contenido,
-        usuario.telefono
+        usuario.telefono,
+        lat,
+        lng,
+        idUsuario
       );
     }
     res
@@ -240,7 +245,7 @@ const enviarNotificacionesArrayTelefonos = async (req, res) => {
       .json({ mensaje: "Notificación enviada", usuarios: usuariosConTelefono });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ mensaje: "Error al enviar la notificación"});
+    res.status(500).json({ mensaje: "Error al enviar la notificación" });
   }
 };
 
@@ -256,17 +261,40 @@ const marcarPublicacionPendienteFalse = async (req, res) => {
     usuario.isPublicacionPendiente = false;
     await usuario.save();
 
-    res
-      .status(200)
-      .json({
-        mensaje: "Campo isPublicacionPendiente actualizado a false",
-        usuario,
-      });
+    res.status(200).json({
+      mensaje: "Campo isPublicacionPendiente actualizado a false",
+      usuario,
+    });
   } catch (error) {
     console.error(error);
     res
       .status(500)
       .json({ mensaje: "Error al actualizar el campo isPublicacionPendiente" });
+  }
+};
+
+const marcarSalaPendienteFalse = async (req, res) => {
+  const idUsuario = req.uid;
+
+  try {
+    const usuario = await Usuario.findById(idUsuario);
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+
+    usuario.isSalaPendiente = false;
+    await usuario.save();
+
+    res
+      .status(200)
+      .json({ mensaje: "Campo isSalaPendiente actualizado a false", usuario });
+  } catch (error) {
+    console.error(error);
+    res
+
+      .status(500)
+      .json({ mensaje: "Error al actualizar el campo isSalaPendiente" });
   }
 };
 

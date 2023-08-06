@@ -8,9 +8,7 @@ const subirArchivoUsuario = (
 ) => {
 
   return new Promise((resolve, reject) => {
-    // console.log(archivo);
     const nombreCortado = archivo.archivo.name.split(".");
-    console.log(nombreCortado);
     const extension = nombreCortado[nombreCortado.length - 1];
 
     // Validar la extension
@@ -39,7 +37,6 @@ const subirArchivoPublicacion = (
   carpeta = ""
 ) => {
   return new Promise((resolve, reject) => {
-    // console.log(archivo);
     const nombreCortado = archivo.name.split(".");
     const extension = nombreCortado[nombreCortado.length - 1];
 

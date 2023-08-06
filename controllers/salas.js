@@ -513,6 +513,9 @@ const deleteUserById = async (req, res) => {
     // Buscar la sala por su ID
     const sala = await Sala.findById(salaId);
 
+    //eliminar de la sala el usuario
+
+
     if (!sala) {
       return res.status(404).json({
         ok: false,
@@ -540,6 +543,12 @@ const deleteUserById = async (req, res) => {
     sala.usuarios.pull(usuarioId);
     await sala.save();
 
+    //eliminar de la sala el usuario
+    const usuario = await Usuario.findById(usuarioId);
+    usuario.salas = usuario.salas.filter((sala) => !sala.salaId.equals(salaId));
+    await usuario.save();
+    
+
     res.json({
       ok: true,
       msg: "Usuario eliminado exitosamente de la sala",
@@ -564,6 +573,11 @@ const abandonarSala = async (req, res) => {
 
     // Filtrar las salas del usuario y guardar los cambios
     usuario.salas = usuario.salas.filter((sala) => !sala.salaId.equals(salaId));
+    //eliminar de la sala
+    const sala = await Sala.findById(salaId);
+    sala.usuarios.pull(uid);
+
+    await sala.save();
 
     await usuario.save();
 
@@ -588,6 +602,7 @@ module.exports = {
   abandonarSala,
   deleteSala,
   deleteUserById,
+  /**/
   crearSala,
   getMensajesBySala,
   getMensajesSala,

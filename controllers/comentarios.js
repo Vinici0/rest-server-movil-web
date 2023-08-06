@@ -19,7 +19,6 @@ const createComentario = async (req, res) => {
       estado: "publicado",
     });
 
-    console.log(comentario);
 
     // Guardar el comentario en la base de datos
     await comentario.save();
@@ -56,7 +55,6 @@ const getComentariosByPublicacion = async (req, res) => {
 const toggleLikeComentario = async (req, res) => {
   try {
     const comentarioId = req.params.id;
-    console.log(comentarioId, "comentarioId");
 
     const comentario = await Comentario.findById(comentarioId).populate(
       "usuario",

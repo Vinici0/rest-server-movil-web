@@ -5,13 +5,15 @@ const obtenerNotificacionesUsuario = async (req, res) => {
   try {
     //populate para traer los datos del usuario que envia la notificacion
     const notificaciones = await Notificacion.find({
-      usuarioDestino: usuarioId,
+      usuario: usuarioId,
     })
       .populate(
         "publicacion",
-        "titulo contenido color ciudad barrio isPublic usuario imagenes imgAlerta latitud longitud nombreUsuario"
+        "titulo contenido color ciudad barrio isPublic usuario imagenes imgAlerta latitud longitud nombreUsuario likes isLiked createdAt"
       )
-      .populate("usuario", "nombre img telefono email");
+      .populate("usuarioRemitente", "nombre img telefono email google").sort({createdAt: -1});
+
+      //que solo
 
     res.json({
       ok: true,
@@ -37,12 +39,13 @@ const marcarNotificacionComoLeida = async (req, res) => {
       return res.status(404).json({ mensaje: "Notificación no encontrada" });
     }
 
-    notificacion.leidaPorUsuario.push({ usuario: usuarioId, leida: true });
+    notificacion.isLeida = true;
+
     await notificacion.save();
 
     res.json({
       ok: true,
-      mensaje: "Notificación marcada como leída",
+      notificacion,
     });
   } catch (error) {
     console.log(error);
@@ -59,16 +62,26 @@ const guardarNotificacion = async (
   usuario,
   mensaje,
   relacionadoId = null,
-  telefonoUsuario = null
+  telefonoUsuario = null,
+  latitud,
+  longitud,
+  usuarioRemitente
 ) => {
+  console.log("usuarioRemitente", usuarioRemitente);
   try {
+    console.log(telefonoUsuario);
     const notificacion = new Notificacion({
       tipo,
       usuario,
       publicacion: tipo === "publicacion" ? relacionadoId : null,
-      telefonoDestino: tipo === "sos" ? telefonoUsuario : null,
+      telefonoDestino: tipo === "sos"
+       ? telefonoUsuario : null,
       mensaje,
+      latitud,
+      longitud,
+      usuarioRemitente
     });
+
 
     await notificacion.save();
 

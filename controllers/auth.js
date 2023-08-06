@@ -44,6 +44,7 @@ const crearUsuario = async (req, res = response) => {
 const login = async (req, res = response) => {
   const { email, password, tokenApp } = req.body;
 
+
   try {
     const usuarioDB = await Usuario.findOne({ email }).populate(
       "ubicaciones",
@@ -126,6 +127,13 @@ const googleAuth = async (req, res = response) => {
 
       await usuarioDB.save();
     }
+
+    // Actualizar el token de dispositivo si se proporciona
+    if (tokenApp) {
+      usuarioDB.tokenApp = tokenApp;
+      await usuarioDB.save();
+    }
+    
     // Generar el JWT
     const token = await generarJWT(usuarioDB.id);
 

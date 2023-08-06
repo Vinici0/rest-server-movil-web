@@ -2,7 +2,6 @@ const { Usuario, Sala, Mensaje } = require("../models");
 
 const getMensajeByUser = async (req, res) => {
   const miId = req.uid;
-  console.log(miId);
 
   const mensajes = await Mensaje.find({
     usuario: miId,

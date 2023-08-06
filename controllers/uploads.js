@@ -22,7 +22,6 @@ const cargarArchivo = async (req, res = response) => {
 const mostrarImagen = async (req, res = response) => {
   const { id, coleccion } = req.params;
 
-  console.log(id, coleccion);
   let modelo;
 
   switch (coleccion) {
@@ -63,8 +62,6 @@ const mostrarImagen = async (req, res = response) => {
       coleccion + "/" + modelo.titulo.replace(/\s/g, ""),
       modelo.imagenes.find((img) => img === idqury)
     );
-
-    console.log(pathImagen);
 
     if (fs.existsSync(pathImagen)) {
       //Sirve para verificar si existe el archivo en el path especificado

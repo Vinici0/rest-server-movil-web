@@ -12,6 +12,7 @@ const {
   actualizarTelefonoOrNombre,
   actualizarIsOpenRoom,
   marcarPublicacionPendienteFalse,
+  marcarSalaPendienteFalse,
 } = require("../controllers/usuarios");
 
 const router = Router();
@@ -26,5 +27,6 @@ router.put("/add-telefono", validarJWT, agregarTelefono );
 router.put("/add-telefonos", validarJWT, ageregarTelefonos );
 router.put("/add-telefono-nombre", validarJWT, actualizarTelefonoOrNombre );
 router.put("/marcar-publicacion-pendiente-false", validarJWT, marcarPublicacionPendienteFalse );
+router.put("/marcar-sala-pendiente-false", validarJWT, marcarSalaPendienteFalse );
 
 module.exports = router;

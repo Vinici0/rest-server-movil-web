@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
+const { Schema, model } = require("mongoose");
 
-const NotificacionSchema = new mongoose.Schema(
+const NotificacionSchema = Schema(
   {
     tipo: {
       type: String,
@@ -8,12 +8,18 @@ const NotificacionSchema = new mongoose.Schema(
       required: true,
     },
     usuario: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Usuario',
       required: true,
     },
+    //usuario que envia la notificacion
+    usuarioRemitente: {
+      type: Schema.Types.ObjectId,
+      ref: 'Usuario',
+    },
+
     publicacion: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Publicacion',
     },
     telefonoUsuario: {
@@ -23,12 +29,18 @@ const NotificacionSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    leidaPorUsuario: [
-      {
-        usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' },
-        leida: { type: Boolean, default: false },
+     latitud: {
+      type: Number,
+      required: true,
+    },
+    longitud: {
+      type: Number,
+      required: true,
+    },
+      isLeida: {
+      type: Boolean,
+      default: false,
       },
-    ],
   },
   {
     timestamps: true,
@@ -43,4 +55,4 @@ NotificacionSchema.method('toJSON', function () {
 });
 
 
-module.exports = mongoose.model('Notificacion', NotificacionSchema);
+module.exports =  model('Notificacion', NotificacionSchema);

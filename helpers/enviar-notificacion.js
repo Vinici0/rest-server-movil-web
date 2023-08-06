@@ -6,13 +6,13 @@ const enviarNotificacion = async (tokens, titulo, desc, usuario = {}) => {
     console.log("No hay tokens");
     return;
   }
-
   const data = {
     nombre: usuario.nombre,
     latitud: usuario.latitud,
-    longitud: usuario.longitud
+    longitud: usuario.longitud,
+    img: usuario.img,
+    google: usuario.google,
   };
-
 
   try {
     const response = await axios.post(
@@ -22,7 +22,7 @@ const enviarNotificacion = async (tokens, titulo, desc, usuario = {}) => {
           title: titulo,
           body: desc,
         },
-        priority:"high",
+        priority: "high",
         data: {
           usuario: JSON.stringify(data),
         },
@@ -35,29 +35,32 @@ const enviarNotificacion = async (tokens, titulo, desc, usuario = {}) => {
         },
       }
     );
-
-
   } catch (error) {
     console.log(error);
     throw new Error("Error al enviar la notificación.");
   }
 };
 
-
 // Controlador para guardar una notificación relacionada con una publicación
 const guardarNotificacionPublicacion = async (
   usuario,
   mensaje,
-  publicacionId
+  publicacionId,
+  latitud,
+  longitud,
+  usuarioRemitente
 ) => {
   try {
     const notificacion = await guardarNotificacion(
       "publicacion",
       usuario,
       mensaje,
-      publicacionId
+      publicacionId,
+      null,
+      latitud,
+      longitud,
+      usuarioRemitente
     );
-
 
     return notificacion;
   } catch (error) {
@@ -70,7 +73,10 @@ const guardarNotificacionPublicacion = async (
 const guardarNotificacionSOS = async (
   usuario,
   mensaje,
-  telefonoUsuario
+  telefonoUsuario,
+  latitud,
+  longitud,
+  usuarioRemitente
 ) => {
   try {
     const notificacion = await guardarNotificacion(
@@ -78,7 +84,10 @@ const guardarNotificacionSOS = async (
       usuario,
       mensaje,
       null,
-      telefonoUsuario
+      telefonoUsuario,
+      latitud,
+      longitud,
+      usuarioRemitente
     );
 
     return notificacion;
@@ -88,10 +97,8 @@ const guardarNotificacionSOS = async (
   }
 };
 
-
-
 module.exports = {
-    enviarNotificacion,
-    guardarNotificacionPublicacion,
-    guardarNotificacionSOS
+  enviarNotificacion,
+  guardarNotificacionPublicacion,
+  guardarNotificacionSOS,
 };
