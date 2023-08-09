@@ -87,13 +87,18 @@ const guardarPublicacion = async (req, res) => {
     // Actualizar el campo isPublicacionPendiente a true para todos los usuarios en usuariosEnRadio
     for (const usuario of usuariosEnRadio) {
       usuario.isPublicacionPendiente = true;
+      usuario.isNotificacionesPendiente = true;
       await usuario.save();
     }
 
     await enviarNotificacion(tokens, titulo, contenido);
 
     // Guardar la notificación relacionada con la publicación a todos los usuarios en usuariosEnRadio
-    for (const usuario of usuariosEnRadio) {
+
+    //quitar el usuario que envia la notificacion
+     const usuariosEnRadio2 = usuariosEnRadio.filter((usuario) => usuario._id.toString() !== usuarioId.toString()); 
+
+    for (const usuario of usuariosEnRadio2) {
       await guardarNotificacionPublicacion(
         usuario._id,
         contenido,
@@ -376,6 +381,37 @@ const likePublicacion = async (req, res) => {
   }
 };
 
+//isPublicacionPendiente a true
+const isPublicacionFinalizada = async (req, res) => {
+  const usuarioId = req.uid;
+
+  try {
+    const { publicacionId } = req.params;
+
+    // Verificar si la publicación existe
+    const publicacion = await Publicacion.findById(publicacionId);
+    if (!publicacion) {
+      return res.status(404).json({ error: "Publicación no encontrada" });
+    }
+
+    // Verificar si el usuario es el dueño de la publicación
+    if (publicacion.usuario.toString() !== usuarioId) {
+      return res.status(401).json({ error: "No autorizado para modificar esta publicación" });
+    }
+
+    // Cambiar el estado de isPublicacionPendiente a true
+    publicacion.isPublicacionPendiente = true;
+    await publicacion.save();
+
+    res.status(200).json({ message: "La publicación se ha finalizado" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al marcar la publicación como pendiente" });
+  }
+};
+
+
+
 module.exports = {
   obtenerPublicacionesUsuario,
   guardarPublicacion,
@@ -386,4 +422,5 @@ module.exports = {
   updatePublicacion2,
   obtenerPublicacionesUsuarioConLikes,
   guardarListArchivo,
+  isPublicacionFinalizada,
 };

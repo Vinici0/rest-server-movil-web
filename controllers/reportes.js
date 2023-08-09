@@ -2,11 +2,16 @@ const {
   Publicacion,
   Usuario
 } = require("../models");
+const fs = require('fs');
+const PDFDocument = require('pdfkit');
+const pdfMakePrinter = require('pdfmake/src/printer');
+const pdfMakeUni = require('pdfmake-unicode');
+const ExcelJS = require('exceljs');
 const publicacion = require("../models/publicacion");
 const obtenerCiudades = async (req, res) => {
   let ciudades = [];
   try {
-    const publicaciones = await Publicacion.find();
+    let publicaciones = await Publicacion.find();
     ciudades = Array.from(new Set(publicaciones.map(publicacion => publicacion['ciudad'])));
 
     res.json({
@@ -34,7 +39,33 @@ const obtenerBarrios = async (req, res) => {
         consulta[key] = parametrosBusqueda[key];
       }
     });
-    const publicaciones = await Publicacion.find(consulta);
+    let publicaciones = await Publicacion.find(consulta);
+    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
+      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+      const horaFin = FechahoraFin.getHours();
+      const minutosFin = FechahoraFin.getMinutes();
+      const documentosHoraFin = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+
+        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+      });
+      publicaciones = documentosHoraFin
+    }
+
+    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
+      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+      const horaInicio = FechahoraInicio.getHours();
+      const minutosInicio = FechahoraInicio.getMinutes();
+      const documentosHoraInicio = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+      });
+      publicaciones = documentosHoraInicio
+    }
+
+
     barrios = Array.from(new Set(publicaciones.map(publicacion => publicacion['barrio'])));
     res.json({
       ok: true,
@@ -56,7 +87,7 @@ const obtenerDatosCards = async (req, res) => {
   let publicacionesDelMes = 0;
   let publicacionesDelDia = 0;
   try {
-    const publicaciones = await Publicacion.find();
+    let publicaciones = await Publicacion.find();
     const usuarios = await Usuario.find();
     publicacionesRegistradas = publicaciones.length;
     usuariosRegistros = usuarios.length;
@@ -120,7 +151,33 @@ const obtenerAnios = async (req, res) => {
         consulta[key] = parametrosBusqueda[key];
       }
     });
-    const publicaciones = await Publicacion.find(consulta);
+    let publicaciones = await Publicacion.find(consulta);
+    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
+      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+      const horaFin = FechahoraFin.getHours();
+      const minutosFin = FechahoraFin.getMinutes();
+      const documentosHoraFin = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+
+        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+      });
+      publicaciones = documentosHoraFin
+    }
+
+    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
+      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+      const horaInicio = FechahoraInicio.getHours();
+      const minutosInicio = FechahoraInicio.getMinutes();
+      const documentosHoraInicio = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+      });
+      publicaciones = documentosHoraInicio
+    }
+
+
     anios = Array.from(new Set(publicaciones.map(publicacion => new Date(publicacion.createdAt).getFullYear())));
     res.json({
       ok: true,
@@ -146,7 +203,33 @@ const obtenerEmergencias = async (req, res) => {
         consulta[key] = parametrosBusqueda[key];
       }
     });
-    const publicaciones = await Publicacion.find(consulta);
+    let publicaciones = await Publicacion.find(consulta);
+    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
+      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+      const horaFin = FechahoraFin.getHours();
+      const minutosFin = FechahoraFin.getMinutes();
+      const documentosHoraFin = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+
+        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+      });
+      publicaciones = documentosHoraFin
+    }
+
+    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
+      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+      const horaInicio = FechahoraInicio.getHours();
+      const minutosInicio = FechahoraInicio.getMinutes();
+      const documentosHoraInicio = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+      });
+      publicaciones = documentosHoraInicio
+    }
+
+
     emergencias = Array.from(new Set(publicaciones.map(publicacion => publicacion['titulo'])));
     res.json({
       ok: true,
@@ -181,39 +264,7 @@ const obtenerReporteBarras = async (req, res) => {
     });
 
 
-    if (parametrosBusqueda.horaFin && parametrosBusqueda.horaFin.includes(':')) {
-      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
-      const horaFin = FechahoraFin.getHours();
-      const minutosFin = FechahoraFin.getMinutes();
-      consulta.$expr = {
-        $and: [
-          [{
-            $hour: '$createdAt'
-          }, horaFin],
-          [{
-            $minute: '$createdAt'
-          }, minutosFin]
-        ]
-      };
-    }
 
-    if (parametrosBusqueda.horaInicio && parametrosBusqueda.horaInicio.includes(':')) {
-      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
-      const horaInicio = FechahoraInicio.getHours();
-      const minutosInicio = FechahoraInicio.getMinutes();
-      if (!consulta.$expr) {
-        consulta.$expr = {};
-      }
-      consulta.$expr.$and = consulta.$expr.$and || [];
-      consulta.$expr.$and.push(
-        [{
-          $hour: '$createdAt'
-        }, horaInicio],
-        [{
-          $minute: '$createdAt'
-        }, minutosInicio]
-      );
-    }
 
 
 
@@ -232,11 +283,37 @@ const obtenerReporteBarras = async (req, res) => {
 
 
 
-    const publicaciones = await Publicacion.find(consulta);
+    let publicaciones = await Publicacion.find(consulta);
+
+    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
+      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+      const horaFin = FechahoraFin.getHours();
+      const minutosFin = FechahoraFin.getMinutes();
+      const documentosHoraFin = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+
+        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+      });
+      publicaciones = documentosHoraFin
+    }
+
+    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
+      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+      const horaInicio = FechahoraInicio.getHours();
+      const minutosInicio = FechahoraInicio.getMinutes();
+      const documentosHoraInicio = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+      });
+      publicaciones = documentosHoraInicio
+    }
+
     const conteoPorMes = {};
-    for (let index = (new Date(parametrosBusqueda.fechaInicio).getMonth()+1); index <= (new Date(parametrosBusqueda.fechaFin).getMonth()+1); index++) {
+    for (let index = (new Date(parametrosBusqueda.fechaInicio).getMonth()); index <= ((new Date(parametrosBusqueda.fechaFin).getMonth())); index++) {
       conteoPorMes[index] = 0;
-      
+
     }
 
 
@@ -276,39 +353,7 @@ const obtenerReportePastel = async (req, res) => {
     });
 
 
-    if (parametrosBusqueda.horaFin && parametrosBusqueda.horaFin.includes(':')) {
-      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
-      const horaFin = FechahoraFin.getHours();
-      const minutosFin = FechahoraFin.getMinutes();
-      consulta.$expr = {
-        $and: [
-          [{
-            $hour: '$createdAt'
-          }, horaFin],
-          [{
-            $minute: '$createdAt'
-          }, minutosFin]
-        ]
-      };
-    }
 
-    if (parametrosBusqueda.horaInicio && parametrosBusqueda.horaInicio.includes(':')) {
-      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
-      const horaInicio = FechahoraInicio.getHours();
-      const minutosInicio = FechahoraInicio.getMinutes();
-      if (!consulta.$expr) {
-        consulta.$expr = {};
-      }
-      consulta.$expr.$and = consulta.$expr.$and || [];
-      consulta.$expr.$and.push(
-        [{
-          $hour: '$createdAt'
-        }, horaInicio],
-        [{
-          $minute: '$createdAt'
-        }, minutosInicio]
-      );
-    }
 
 
 
@@ -326,7 +371,33 @@ const obtenerReportePastel = async (req, res) => {
     }
 
 
-    const publicaciones = await Publicacion.find(consulta);
+    let publicaciones = await Publicacion.find(consulta);
+    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
+      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+      const horaFin = FechahoraFin.getHours();
+      const minutosFin = FechahoraFin.getMinutes();
+      const documentosHoraFin = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+
+        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+      });
+      publicaciones = documentosHoraFin
+    }
+
+    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
+      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+      const horaInicio = FechahoraInicio.getHours();
+      const minutosInicio = FechahoraInicio.getMinutes();
+      const documentosHoraInicio = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+      });
+      publicaciones = documentosHoraInicio
+    }
+
+
     emergencias = publicaciones.forEach(publicacion => {
       const {
         titulo
@@ -361,39 +432,7 @@ const obtenerMapaCalor = async (req, res) => {
     });
 
 
-    if (parametrosBusqueda.horaFin && parametrosBusqueda.horaFin.includes(':')) {
-      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
-      const horaFin = FechahoraFin.getHours();
-      const minutosFin = FechahoraFin.getMinutes();
-      consulta.$expr = {
-        $and: [
-          [{
-            $hour: '$createdAt'
-          }, horaFin],
-          [{
-            $minute: '$createdAt'
-          }, minutosFin]
-        ]
-      };
-    }
 
-    if (parametrosBusqueda.horaInicio && parametrosBusqueda.horaInicio.includes(':')) {
-      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
-      const horaInicio = FechahoraInicio.getHours();
-      const minutosInicio = FechahoraInicio.getMinutes();
-      if (!consulta.$expr) {
-        consulta.$expr = {};
-      }
-      consulta.$expr.$and = consulta.$expr.$and || [];
-      consulta.$expr.$and.push(
-        [{
-          $hour: '$createdAt'
-        }, horaInicio],
-        [{
-          $minute: '$createdAt'
-        }, minutosInicio]
-      );
-    }
 
 
 
@@ -411,7 +450,33 @@ const obtenerMapaCalor = async (req, res) => {
     }
 
 
-    const publicaciones = await Publicacion.find(consulta);
+    let publicaciones = await Publicacion.find(consulta);
+    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
+      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+      const horaFin = FechahoraFin.getHours();
+      const minutosFin = FechahoraFin.getMinutes();
+      const documentosHoraFin = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+
+        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+      });
+      publicaciones = documentosHoraFin
+    }
+
+    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
+      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+      const horaInicio = FechahoraInicio.getHours();
+      const minutosInicio = FechahoraInicio.getMinutes();
+      const documentosHoraInicio = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+      });
+      publicaciones = documentosHoraInicio
+    }
+
+
     const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const heatmapData = Array.from({
       length: 7
@@ -491,39 +556,7 @@ const obtenerCoordenadas = async (req, res) => {
     });
 
 
-    if (parametrosBusqueda.horaFin && parametrosBusqueda.horaFin.includes(':')) {
-      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
-      const horaFin = FechahoraFin.getHours();
-      const minutosFin = FechahoraFin.getMinutes();
-      consulta.$expr = {
-        $and: [
-          [{
-            $hour: '$createdAt'
-          }, horaFin],
-          [{
-            $minute: '$createdAt'
-          }, minutosFin]
-        ]
-      };
-    }
 
-    if (parametrosBusqueda.horaInicio && parametrosBusqueda.horaInicio.includes(':')) {
-      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
-      const horaInicio = FechahoraInicio.getHours();
-      const minutosInicio = FechahoraInicio.getMinutes();
-      if (!consulta.$expr) {
-        consulta.$expr = {};
-      }
-      consulta.$expr.$and = consulta.$expr.$and || [];
-      consulta.$expr.$and.push(
-        [{
-          $hour: '$createdAt'
-        }, horaInicio],
-        [{
-          $minute: '$createdAt'
-        }, minutosInicio]
-      );
-    }
 
 
 
@@ -541,7 +574,33 @@ const obtenerCoordenadas = async (req, res) => {
     }
 
 
-    const publicaciones = await Publicacion.find(consulta);
+    let publicaciones = await Publicacion.find(consulta);
+    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
+      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+      const horaFin = FechahoraFin.getHours();
+      const minutosFin = FechahoraFin.getMinutes();
+      const documentosHoraFin = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+
+        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+      });
+      publicaciones = documentosHoraFin
+    }
+
+    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
+      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+      const horaInicio = FechahoraInicio.getHours();
+      const minutosInicio = FechahoraInicio.getMinutes();
+      const documentosHoraInicio = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+      });
+      publicaciones = documentosHoraInicio
+    }
+
+
 
     const coordenadas = publicaciones.map(publicacion => {
       return {
@@ -567,6 +626,402 @@ const obtenerCoordenadas = async (req, res) => {
 };
 
 
+const descargarXLSX = async (req, res) => {
+  let consulta = {};
+  try {
+    const parametrosBusqueda = req.body;
+    Object.keys(parametrosBusqueda).forEach(key => {
+      if (parametrosBusqueda[key] !== '' && parametrosBusqueda[key] !== undefined) {
+        consulta[key] = parametrosBusqueda[key];
+      }
+    });
+
+
+
+
+
+
+    if (parametrosBusqueda.fechaFin) {
+      const fechaFin = new Date(parametrosBusqueda.fechaFin);
+      fechaFin.setHours(23, 59, 59); // Establecer la hora de finalización a las 23:59:59
+      consulta.createdAt = consulta.createdAt || {};
+      consulta.createdAt.$lte = fechaFin;
+    }
+
+    if (parametrosBusqueda.fechaInicio) {
+      const fechaInicio = new Date(parametrosBusqueda.fechaInicio);
+      consulta.createdAt = consulta.createdAt || {};
+      consulta.createdAt.$gte = fechaInicio;
+    }
+
+
+    let publicaciones = await Publicacion.find(consulta);
+    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
+      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+      const horaFin = FechahoraFin.getHours();
+      const minutosFin = FechahoraFin.getMinutes();
+      const documentosHoraFin = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+
+        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+      });
+      publicaciones = documentosHoraFin
+    }
+
+    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
+      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+      const horaInicio = FechahoraInicio.getHours();
+      const minutosInicio = FechahoraInicio.getMinutes();
+      const documentosHoraInicio = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+      });
+      publicaciones = documentosHoraInicio
+    }
+
+
+    exportToExcel(publicaciones)
+      .then((buffer) => {
+        // Configurar las cabeceras para la descarga del archivo
+        res.setHeader('Content-Disposition', 'attachment; filename=datos.xlsx');
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+        // Enviar el archivo de Excel como respuesta
+        res.send(buffer);
+      })
+      .catch((error) => {
+        console.error('Error al generar el archivo de Excel:', error);
+        res.status(500).send('Error al generar el archivo de Excel.');
+      });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      msg: "Por favor hable con el administrador",
+    });
+  }
+};
+
+const descargarCSV = async (req, res) => {
+  let consulta = {};
+  try {
+    const parametrosBusqueda = req.body;
+    Object.keys(parametrosBusqueda).forEach(key => {
+      if (parametrosBusqueda[key] !== '' && parametrosBusqueda[key] !== undefined) {
+        consulta[key] = parametrosBusqueda[key];
+      }
+    });
+
+
+
+
+
+
+    if (parametrosBusqueda.fechaFin) {
+      const fechaFin = new Date(parametrosBusqueda.fechaFin);
+      fechaFin.setHours(23, 59, 59); // Establecer la hora de finalización a las 23:59:59
+      consulta.createdAt = consulta.createdAt || {};
+      consulta.createdAt.$lte = fechaFin;
+    }
+
+    if (parametrosBusqueda.fechaInicio) {
+      const fechaInicio = new Date(parametrosBusqueda.fechaInicio);
+      consulta.createdAt = consulta.createdAt || {};
+      consulta.createdAt.$gte = fechaInicio;
+    }
+
+
+    let publicaciones = await Publicacion.find(consulta);
+    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
+      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+      const horaFin = FechahoraFin.getHours();
+      const minutosFin = FechahoraFin.getMinutes();
+      const documentosHoraFin = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+
+        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+      });
+      publicaciones = documentosHoraFin
+    }
+
+    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
+      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+      const horaInicio = FechahoraInicio.getHours();
+      const minutosInicio = FechahoraInicio.getMinutes();
+      const documentosHoraInicio = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+      });
+      publicaciones = documentosHoraInicio
+    }
+
+
+    exportToCSV(publicaciones)
+      .then((buffer) => {
+        // Configurar las cabeceras para la descarga del archivo
+        res.setHeader('Content-Disposition', 'attachment; filename=datos.xlsx');
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+        // Enviar el archivo de Excel como respuesta
+        res.send(buffer);
+      })
+      .catch((error) => {
+        console.error('Error al generar el archivo de Excel:', error);
+        res.status(500).send('Error al generar el archivo de Excel.');
+      });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      msg: "Por favor hable con el administrador",
+    });
+  }
+};
+
+const descargarPDF = async (req, res) => {
+  let consulta = {};
+  try {
+    const parametrosBusqueda = req.body;
+    console.log(parametrosBusqueda);
+    Object.keys(parametrosBusqueda).forEach(key => {
+      if (parametrosBusqueda[key] !== '' && parametrosBusqueda[key] !== undefined) {
+        consulta[key] = parametrosBusqueda[key];
+      }
+    });
+
+
+
+
+
+
+    if (parametrosBusqueda.fechaFin) {
+      const fechaFin = new Date(parametrosBusqueda.fechaFin);
+      fechaFin.setHours(23, 59, 59); // Establecer la hora de finalización a las 23:59:59
+      consulta.createdAt = consulta.createdAt || {};
+      consulta.createdAt.$lte = fechaFin;
+    }
+
+    if (parametrosBusqueda.fechaInicio) {
+      const fechaInicio = new Date(parametrosBusqueda.fechaInicio);
+      consulta.createdAt = consulta.createdAt || {};
+      consulta.createdAt.$gte = fechaInicio;
+    }
+
+
+    let publicaciones = await Publicacion.find(consulta);
+    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
+      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+      const horaFin = FechahoraFin.getHours();
+      const minutosFin = FechahoraFin.getMinutes();
+      const documentosHoraFin = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+
+        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+      });
+      publicaciones = documentosHoraFin
+    }
+
+    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
+      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+      const horaInicio = FechahoraInicio.getHours();
+      const minutosInicio = FechahoraInicio.getMinutes();
+      const documentosHoraInicio = publicaciones.filter((publicacion) => {
+        const hora = publicacion.createdAt.getHours();
+        const minutos = publicacion.createdAt.getMinutes();
+        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+      });
+      publicaciones = documentosHoraInicio
+    }
+
+   // Configurar los encabezados de la respuesta para descargar el archivo PDF
+   const filename = 'archivo.pdf';
+   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+   res.setHeader('Content-Type', 'application/pdf');
+ 
+   // Obtener la ruta absoluta de las fuentes Roboto
+   const fonts = {
+    Roboto: {
+      normal: require.resolve('pdfmake-unicode/src/fonts/Arial GEO/Roboto-Regular.ttf'),
+      bold: require.resolve('pdfmake-unicode/src/fonts/Arial GEO/Roboto-Medium.ttf'),
+     },
+    
+  };
+ 
+   // Crear un objeto de definición de PDF utilizando pdfmake
+   const printer = new pdfMakePrinter(fonts);
+   const docDefinition = {
+     content: [
+       { text: 'Lista de Publicaciones', style: 'header' },
+       {
+         table: {
+           headerRows: 1,
+           widths: ['auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'],
+           body: [
+             [{ text: 'Título', style: 'header2'}
+             , { text: 'Contenido', style: 'header2'}
+             , { text: 'Ciudad', style: 'header2'}
+             , { text: 'Barrio', style: 'header2'}
+             , { text: 'Nombre de Usuario',  style: 'header2'}
+             , { text: 'Latitud', style: 'header2'}
+             , { text: 'Longitud', style: 'header2'}
+    
+            ],
+             ...publicaciones.map((publicacion) => [
+               publicacion.titulo,
+               publicacion.contenido,
+               publicacion.ciudad,
+               publicacion.barrio,
+               publicacion.nombreUsuario,
+               publicacion.latitud.toString(),
+               publicacion.longitud.toString(),
+             ]),
+           ],
+         },
+       },
+     ],
+     styles: {
+       header: {
+         fontSize: 18,
+         bold: true,
+         alignment: 'center',
+       },
+       header2: {
+         fontSize: 12,
+         bold: true,
+         alignment: 'center',
+       },
+     },
+   };
+ 
+   // Crear el documento PDF utilizando pdfmake
+   const pdfDoc = printer.createPdfKitDocument(docDefinition);
+   pdfDoc.pipe(res);
+   pdfDoc.end();
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      msg: "Por favor hable con el administrador",
+    });
+  }
+
+};
+// Función para exportar un array de objetos a Excel
+async function exportToExcel(dataArray) {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Datos');
+
+  // Definir los encabezados de las columnas en la hoja de cálculo
+  let objeto = dataArray[0]._doc
+  delete objeto._id
+  delete objeto.color
+  delete objeto.isPublic
+  delete objeto.usuario
+  delete objeto.likes
+  delete objeto.imagenes
+  delete objeto.comentarios
+  delete objeto.__v
+  delete objeto.isActivo
+  delete objeto.isLiked
+  delete objeto.imgAlerta
+  delete objeto.isPublicacionPendiente
+  const columnHeaders = Object.keys(objeto);
+  worksheet.addRow(columnHeaders);
+
+  // Llenar la hoja de cálculo con los datos de los objetos
+  dataArray.forEach((dataObj) => {
+    let objeto = Object.values(dataObj)[2]
+    delete objeto._id
+    delete objeto.color
+    delete objeto.isPublic
+    delete objeto.usuario
+    delete objeto.likes
+    delete objeto.imagenes
+    delete objeto.comentarios
+    delete objeto.__v
+    delete objeto.isActivo
+    delete objeto.isLiked
+    delete objeto.imgAlerta
+    delete objeto.isPublicacionPendiente
+
+
+    worksheet.addRow(Object.values(objeto));
+  });
+  worksheet.columns.forEach((column, index) => {
+    let maxLength = 0;
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber > 1) {
+        const cellValue = row.getCell(index + 1).value;
+        if (cellValue && cellValue.toString().length > maxLength) {
+          maxLength = cellValue.toString().length;
+        }
+      }
+    });
+    // Limitar el ancho de las celdas al máximo permitido (16384)
+    column.width = Math.min(maxLength < 12 ? 12 : maxLength, 16384);
+  });
+
+
+
+
+
+
+  // Devolver el archivo de Excel como un buffer
+  const buffer = await workbook.xlsx.writeBuffer();
+  return buffer;
+}
+
+
+
+// Función para exportar un array de objetos a Excel
+async function exportToCSV(dataArray) {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Datos');
+
+  // Definir los encabezados de las columnas en la hoja de cálculo
+  let objeto = dataArray[0]._doc
+  const columnHeaders = Object.keys(objeto);
+  worksheet.addRow(columnHeaders);
+
+  // Llenar la hoja de cálculo con los datos de los objetos
+  dataArray.forEach((dataObj) => {
+    let objeto = Object.values(dataObj)[2]
+    worksheet.addRow(Object.values(objeto));
+  });
+  worksheet.columns.forEach((column, index) => {
+    let maxLength = 0;
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber > 1) {
+        const cellValue = row.getCell(index + 1).value;
+        if (cellValue && cellValue.toString().length > maxLength) {
+          maxLength = cellValue.toString().length;
+        }
+      }
+    });
+    // Limitar el ancho de las celdas al máximo permitido (16384)
+    column.width = Math.min(maxLength < 12 ? 12 : maxLength, 16384);
+  });
+
+
+
+
+
+
+  // Devolver el archivo de Excel como un buffer
+  const buffer = await workbook.xlsx.writeBuffer();
+  return buffer;
+}
+
+
+
+
 module.exports = {
   obtenerCiudades,
   obtenerBarrios,
@@ -576,6 +1031,9 @@ module.exports = {
   obtenerReportePastel,
   obtenerMapaCalor,
   obtenerDatosCards,
-  obtenerCoordenadas
+  obtenerCoordenadas,
+  descargarXLSX,
+  descargarPDF,
+  descargarCSV
 
 };

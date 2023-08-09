@@ -221,7 +221,7 @@ const cambiarEstadoSala = async (req, res) => {
         msg: "Usuario no encontrado",
       });
     }
-    console.log(usuario);
+
 
     // Find the sala with the given salaId in the salas array
     const salaToUpdate = usuario.salas.find(

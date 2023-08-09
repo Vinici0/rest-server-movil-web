@@ -46,6 +46,7 @@ io.on("connection", (client) => {
   });
 
   client.on("comentario-publicacion", async (payload) => {
+    console.log(payload);
     client.broadcast.to(payload.para).emit("comentario-publicacion", payload);
   });
   

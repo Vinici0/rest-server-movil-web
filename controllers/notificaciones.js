@@ -7,10 +7,10 @@ const obtenerNotificacionesUsuario = async (req, res) => {
     const notificaciones = await Notificacion.find({
       usuario: usuarioId,
     })
-      .populate(
-        "publicacion",
-        "titulo contenido color ciudad barrio isPublic usuario imagenes imgAlerta latitud longitud nombreUsuario likes isLiked createdAt"
-      )
+    .populate(
+      "publicacion",
+      "titulo contenido color ciudad barrio isPublic usuario likes imagenes latitud longitud comentarios imgAlerta isLiked createdAt updatedAt nombreUsuario isPublicacionPendiente"
+    )
       .populate("usuarioRemitente", "nombre img telefono email google").sort({createdAt: -1});
 
       //que solo
@@ -21,7 +21,7 @@ const obtenerNotificacionesUsuario = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({
+    res.status(500).json({  
       ok: false,
       msg: "Por favor hable con el administrador",
     });

@@ -59,6 +59,10 @@ const UsuarioSchema = Schema({
     type: Boolean,
     default: false,
   },
+  isNotificacionesPendiente: {
+    type: Boolean,
+    default: false,
+  },
   salas: [
     {
       salaId: { type: Schema.Types.ObjectId, ref: "Sala" },

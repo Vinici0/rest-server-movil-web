@@ -219,6 +219,8 @@ const enviarNotificacionesArrayTelefonos = async (req, res) => {
       google: usuario.google,
     };
 
+
+
     const telefonos = usuario.telefonos; // Obtener el arreglo de teléfonos del usuario
 
     const usuariosConTelefono = await Usuario.find({
@@ -239,6 +241,9 @@ const enviarNotificacionesArrayTelefonos = async (req, res) => {
         lng,
         idUsuario
       );
+      //TODO: Verificar si el usuario tiene la app abierta
+      usuarioDestino.isNotificacionesPendiente = true;
+      await usuarioDestino.save();
     }
     res
       .status(200)
@@ -283,7 +288,7 @@ const marcarSalaPendienteFalse = async (req, res) => {
       return res.status(404).json({ mensaje: "Usuario no encontrado" });
     }
 
-    usuario.isSalaPendiente = false;
+    usuario.isSalasPendiente = false;
     await usuario.save();
 
     res
@@ -298,6 +303,58 @@ const marcarSalaPendienteFalse = async (req, res) => {
   }
 };
 
+//isNotificacionesPendiente
+const marcarNotificacionesPendienteFalse = async (req, res) => {
+  const idUsuario = req.uid;
+
+  try {
+    const usuario = await Usuario.findById(idUsuario);
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+
+    usuario.isNotificacionesPendiente = false;
+    await usuario.save();
+
+    res.status(200).json({
+      mensaje: "Campo isNotificacionesPendiente actualizado a false",
+      usuario,
+    });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ mensaje: "Error al actualizar el campo isNotificacionesPendiente" });
+  }
+};
+
+const eliminarTokenApp = async (req, res) => {
+  const uid = req.uid;
+
+  try {
+    // Busca y actualiza el usuario por su ID para eliminar el tokenApp
+    const usuario = await Usuario.findByIdAndUpdate(
+      uid,
+      { $unset: { tokenApp: "" } },
+      { new: true }
+    );
+
+    res.json({
+      ok: true,
+      usuario,
+      msg: "El tokenApp ha sido eliminado correctamente.",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      msg: "Por favor hable con el administrador",
+    });
+  }
+};
+
+
 module.exports = {
   getUsuarios,
   actualizarUsuario,
@@ -309,4 +366,7 @@ module.exports = {
   actualizarTelefonoOrNombre,
   actualizarIsOpenRoom,
   marcarPublicacionPendienteFalse,
+  marcarSalaPendienteFalse,
+  marcarNotificacionesPendienteFalse,
+  eliminarTokenApp
 };

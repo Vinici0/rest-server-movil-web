@@ -1,3 +1,4 @@
+const { enviarNotificacion } = require("../helpers/enviar-notificacion");
 const {
   Publicacion,
   Sala,
@@ -66,7 +67,7 @@ const grabarMensajeSala2 = async (payload) => {
 const grabarMensajeSala = async (payload) => {
   try {
     const { mensaje, de, para } = payload;
-    console.log(payload);
+    // console.log(payload);
     const newMessage = new Mensaje({ mensaje, usuario: de });
     await newMessage.save();
 
@@ -74,17 +75,16 @@ const grabarMensajeSala = async (payload) => {
     sala.mensajes.push(newMessage._id);
     await sala.save();
 
-    const usuariosEnGrupoOffline = await obtenerUsuariosSalaHelper(para);
+    const usuariosEnGrupoOffline = await obtenerUsuariosSalaHelper(para, de);
 
-    // Actualizar la cantidad de mensajes no leídos solo para los usuarios offline en el grupo
     for (const usuario of usuariosEnGrupoOffline) {
-      // Skip the sender of the message from having their mensajesNoLeidos incr emented
       if (usuario._id.toString() === de) {
         continue;
       }
 
       //actualizar isSalasPendiente a true
       usuario.isSalasPendiente = true;
+      usuario.isNotificacionesPendiente = true;
 
       usuario.salas = usuario.salas.map((sala) => {
         if (sala.salaId.toString() === para) {
@@ -98,6 +98,12 @@ const grabarMensajeSala = async (payload) => {
       await usuario.save();
     }
 
+    const tokens = usuariosEnGrupoOffline.map((usuario) => usuario.tokenApp);
+    const titulo = "Nuevo mensaje";
+    const desc = `Tienes un nuevo mensaje en el grupo ${sala.nombre}`;
+    // Unificar los arreglos de tokens usando concat
+    const allTokens = [].concat(...tokens);
+    await enviarNotificacion(allTokens, titulo, desc);
     return true;
   } catch (error) {
     console.log(error);
@@ -105,49 +111,24 @@ const grabarMensajeSala = async (payload) => {
   }
 };
 
-const obtenerUsuariosSalaHelper = async (salaId) => {
+const obtenerUsuariosSalaHelper = async (salaId, usuarioId) => {
   try {
+    // El usuario que envía el mensaje
     const usuariosEnSala = await Usuario.find({
       "salas.salaId": salaId,
       "salas.isRoomOpen": false,
+      "_id": { $ne: usuarioId }
     });
+
     return usuariosEnSala;
   } catch (error) {
     console.log(error);
     return [];
   }
 };
-//grabarComentarioPublicacion
-// const grabarComentarioPublicacion = async (payload) => {
-//   try {
-//     const { mensaje, usuario, publicacion } = payload;
-
-//     // Crear el comentario
-//     const comentario = new Comentario({
-//       mensaje,
-//       usuario,
-//       publicacion,
-//       estado: "publicado",
-//     });
-
-//     // Guardar el comentario en la base de datos
-//     await comentario.save();
-
-//     // Agregar el comentario a la publicación
-//     const publicacionActualizada = await Publicacion.findByIdAndUpdate(
-//       publicacion,
-//       { $push: { comentarios: comentario._id } },
-//       { new: true }
-//     );
-
-//     return true;
-//   } catch (error) {
-//     console.log(error);
-//     return false;
-//   }
-// };
 
 const grabarComentarioPublicacion = async (payload) => {
+  console.log(payload);
   const usuarioId = payload.de;
   try {
     const { mensaje, para } = payload;

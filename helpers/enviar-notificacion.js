@@ -8,9 +8,9 @@ const enviarNotificacion = async (tokens, titulo, desc, usuario = {}) => {
   }
   const data = {
     nombre: usuario.nombre,
-    latitud: usuario.latitud,
-    longitud: usuario.longitud,
-    img: usuario.img,
+    latitud: usuario.latitud ?? "",
+    longitud: usuario.longitud ?? "",
+    img: usuario.img ?? "",
     google: usuario.google,
   };
 
@@ -35,6 +35,7 @@ const enviarNotificacion = async (tokens, titulo, desc, usuario = {}) => {
         },
       }
     );
+
   } catch (error) {
     console.log(error);
     throw new Error("Error al enviar la notificación.");

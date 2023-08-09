@@ -73,6 +73,11 @@ const PublicacionSchema = Schema(
       type: Boolean,
       default: true,
     },
+    //publicacion pendiente
+    isPublicacionPendiente: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

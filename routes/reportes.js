@@ -1,6 +1,8 @@
 const { Router } = require("express");
 const {
-  obtenerCiudades,obtenerBarrios,obtenerEmergencias,obtenerReporteBarras,obtenerReportePastel,obtenerAnios,obtenerMapaCalor,obtenerDatosCards,obtenerCoordenadas
+  obtenerCiudades,obtenerBarrios,obtenerEmergencias,obtenerReporteBarras,obtenerReportePastel,obtenerAnios,obtenerMapaCalor,obtenerDatosCards
+  ,obtenerCoordenadas
+  ,descargarXLSX,descargarPDF,descargarCSV
 } = require("../controllers/reportes");
 
 const { validarJWT } = require("../middlewares/validar-jwt");
@@ -8,7 +10,7 @@ const { validarJWT } = require("../middlewares/validar-jwt");
 const router = Router();
 router.get(
   "/obtenerCiudades",
-  /* validarJWT, */
+  /* validarJWT,  */
   obtenerCiudades
 );
 router.post(
@@ -51,6 +53,24 @@ router.post(
   "/obtenerCoordenadas",
 /*   validarJWT, */
 obtenerCoordenadas
+);
+
+router.post(
+  "/descargarXLSX",
+/*   validarJWT, */
+descargarXLSX
+);
+
+router.post(
+  "/descargarPDF",
+/*   validarJWT, */
+descargarPDF
+);
+
+router.post(
+  "/descargarCSV",
+/*   validarJWT, */
+descargarCSV
 );
 
 module.exports = router;

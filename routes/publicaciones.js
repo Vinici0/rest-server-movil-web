@@ -8,6 +8,7 @@ const {
   updatePublicacion,
   likePublicacion,
   guardarListArchivo,
+  isPublicacionFinalizada,
 } = require("../controllers/publicaciones");
 const { validarCampos } = require("../middlewares/validar-campos");
 const { validacionesCrearPublicacion } = require("../middlewares/express-validator");
@@ -28,5 +29,7 @@ router.put("/:id", validarJWT, updatePublicacion);
 router.post("/listaArchivos/:uid/:titulo",validarCampos, guardarListArchivo);
 
 router.put("/like", validarJWT, updatePublicacion);
+
+router.put("/marcar-publicacion-pendiente-false/:publicacionId", validarJWT, isPublicacionFinalizada);
 
 module.exports = router;

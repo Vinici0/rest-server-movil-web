@@ -13,6 +13,8 @@ const {
   actualizarIsOpenRoom,
   marcarPublicacionPendienteFalse,
   marcarSalaPendienteFalse,
+  marcarNotificacionesPendienteFalse,
+  eliminarTokenApp,
 } = require("../controllers/usuarios");
 
 const router = Router();
@@ -28,5 +30,7 @@ router.put("/add-telefonos", validarJWT, ageregarTelefonos );
 router.put("/add-telefono-nombre", validarJWT, actualizarTelefonoOrNombre );
 router.put("/marcar-publicacion-pendiente-false", validarJWT, marcarPublicacionPendienteFalse );
 router.put("/marcar-sala-pendiente-false", validarJWT, marcarSalaPendienteFalse );
+router.put("/marcar-notificaciones-pendiente-false", validarJWT, marcarNotificacionesPendienteFalse );
+router.delete("/delete-token-app", validarJWT, eliminarTokenApp );
 
 module.exports = router;
