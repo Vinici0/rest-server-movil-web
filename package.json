@@ -15,8 +15,6 @@
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
-    "pdfmake": "^0.2.7",
-    "pdfmake-unicode": "^0.0.1",
     "exceljs": "^4.3.0",
     "express": "^4.18.2",
     "express-fileupload": "^1.4.0",
@@ -27,7 +25,13 @@
     "moment": "^2.29.4",
     "mongoose": "^6.6.5",
     "pdfkit": "^0.13.0",
+    "pdfmake": "^0.2.7",
+    "pdfmake-unicode": "^0.0.1",
     "socket.io": "^4.7.1",
     "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.6.2",
+    "supertest": "^6.3.3"
   }
 }

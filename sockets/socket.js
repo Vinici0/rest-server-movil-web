@@ -1,5 +1,5 @@
 const { comprobarJWT } = require("../helpers/jwt");
-const { io } = require("../index");
+const { io } = require("../app");
 const {
   usuarioConectado,
   usuarioDesconectado,
