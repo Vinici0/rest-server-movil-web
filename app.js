@@ -42,6 +42,7 @@ app.use("/api/usuarios", require("./routes/usuarios"));
 app.use("/api/reportes", require("./routes/reportes"));
 app.use("/api/notificacion", require("./routes/notificaciones"));
 app.use("/api/denuncias", require("./routes/denuncias"));
+app.use("/api/documents", require("./routes/documents"));
 
 
 module.exports = {

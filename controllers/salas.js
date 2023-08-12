@@ -41,8 +41,12 @@ const crearSala = async (req, res) => {
     salaExistente = await Sala.findOne({ codigo });
   } while (salaExistente);
 
-  const colorRandom = Array.from({ length: 3 }, () => Math.floor(Math.random() * 256));
-  const color = colorRandom.reduce((acc, curr) => acc + curr.toString(16).padStart(2, "0"));
+  const colorRandom = Array.from({ length: 3 }, () =>
+    Math.floor(Math.random() * 256)
+  );
+  const color = colorRandom.reduce(
+    (acc, curr) => acc + curr.toString(16).padStart(2, "0")
+  );
 
   try {
     const sala = new Sala({ nombre, codigo, color, propietario: req.uid });
@@ -86,7 +90,6 @@ const crearSala = async (req, res) => {
     });
   }
 };
-
 
 const unirseSala = async (req, res) => {
   const { codigo } = req.body;
@@ -146,8 +149,6 @@ const unirseSala = async (req, res) => {
   }
 };
 
-
-
 const grabarMensajeSala = async (req, res) => {
   try {
     const { mensaje, salaId } = req.body;
@@ -196,8 +197,8 @@ const grabarMensajeSala = async (req, res) => {
 const obtenerUsuariosSalaHelper = async (salaId) => {
   try {
     const usuariosEnSala = await Usuario.find({
-      'salas.salaId': salaId,
-      'salas.isRoomOpen': false,
+      "salas.salaId": salaId,
+      "salas.isRoomOpen": false,
     });
     return usuariosEnSala;
   } catch (error) {
@@ -205,7 +206,6 @@ const obtenerUsuariosSalaHelper = async (salaId) => {
     return [];
   }
 };
-
 
 const cambiarEstadoSala = async (req, res) => {
   try {
@@ -221,7 +221,6 @@ const cambiarEstadoSala = async (req, res) => {
         msg: "Usuario no encontrado",
       });
     }
-
 
     // Find the sala with the given salaId in the salas array
     const salaToUpdate = usuario.salas.find(
@@ -253,8 +252,6 @@ const cambiarEstadoSala = async (req, res) => {
     });
   }
 };
-
-
 
 const obtenerSalasConMensajesNoLeidos = async (req, res) => {
   const usuarioId = req.uid;
@@ -305,8 +302,6 @@ const obtenerSalasConMensajesNoLeidos = async (req, res) => {
     });
   }
 };
-
-
 
 const getSalas = async (req, res) => {
   const uid = req.uid;
@@ -452,11 +447,11 @@ const deleteSala = async (req, res) => {
     // Delete the room from the list of rooms for all users
     await Usuario.updateMany(
       { "salas.salaId": salaId },
-      { 
-        $pull: { 
+      {
+        $pull: {
           salas: { salaId: salaId },
-          mensajes: { _id: { $in: sala.mensajes } } // Remove messages associated with the room
-        } 
+          mensajes: { _id: { $in: sala.mensajes } }, // Remove messages associated with the room
+        },
       }
     );
 
@@ -473,7 +468,6 @@ const deleteSala = async (req, res) => {
   }
 };
 
-
 const obtenerUsuariosSala = async (req, res) => {
   const { salaId } = req.params;
   try {
@@ -482,7 +476,7 @@ const obtenerUsuariosSala = async (req, res) => {
       populate: {
         path: "ubicaciones",
         model: "Ubicacion", // Reemplaza "Ubicacion" con el nombre de tu modelo de ubicaciones
-      },  
+      },
     });
 
     if (!sala) {
@@ -515,7 +509,6 @@ const deleteUserById = async (req, res) => {
 
     //eliminar de la sala el usuario
 
-
     if (!sala) {
       return res.status(404).json({
         ok: false,
@@ -547,7 +540,6 @@ const deleteUserById = async (req, res) => {
     const usuario = await Usuario.findById(usuarioId);
     usuario.salas = usuario.salas.filter((sala) => !sala.salaId.equals(salaId));
     await usuario.save();
-    
 
     res.json({
       ok: true,
@@ -561,7 +553,6 @@ const deleteUserById = async (req, res) => {
     });
   }
 };
-
 
 const abandonarSala = async (req, res) => {
   const { salaId } = req.params;
@@ -594,15 +585,10 @@ const abandonarSala = async (req, res) => {
   }
 };
 
-
-
-
-
 module.exports = {
   abandonarSala,
   deleteSala,
   deleteUserById,
-  /**/
   crearSala,
   getMensajesBySala,
   getMensajesSala,
@@ -615,5 +601,5 @@ module.exports = {
   unirseSala,
   updateSala,
   obtenerSalasConMensajesNoLeidos,
-  cambiarEstadoSala
+  cambiarEstadoSala,
 };

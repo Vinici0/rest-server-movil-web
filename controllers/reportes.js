@@ -1,25 +1,29 @@
-const {
-  Publicacion,
-  Usuario
-} = require("../models");
-const fs = require('fs');
-const PDFDocument = require('pdfkit');
-const pdfMakePrinter = require('pdfmake/src/printer');
-const pdfMakeUni = require('pdfmake-unicode');
-const ExcelJS = require('exceljs');
+const { Publicacion, Usuario } = require("../models");
+const fs = require("fs");
+const PDFDocument = require("pdfkit");
+const pdfMakePrinter = require("pdfmake/src/printer");
+const pdfMakeUni = require("pdfmake-unicode");
+const ExcelJS = require("exceljs");
 const publicacion = require("../models/publicacion");
+
+//Importaciones
+const pdf = require("html-pdf");
+const pdfTemplate = require("../prueba/public/pdfTemplate");
+const path = require("path");
+
 const obtenerCiudades = async (req, res) => {
   let ciudades = [];
   try {
     let publicaciones = await Publicacion.find();
-    ciudades = Array.from(new Set(publicaciones.map(publicacion => publicacion['ciudad'])));
+    ciudades = Array.from(
+      new Set(publicaciones.map((publicacion) => publicacion["ciudad"]))
+    );
 
     res.json({
       ok: true,
       msg: "Ciudades obtenidas correctamente",
-      data: ciudades
+      data: ciudades,
     });
-
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -34,43 +38,59 @@ const obtenerBarrios = async (req, res) => {
   let consulta = {};
   try {
     const parametrosBusqueda = req.body;
-    Object.keys(parametrosBusqueda).forEach(key => {
-      if (parametrosBusqueda[key] !== '' && parametrosBusqueda[key] !== undefined) {
+    Object.keys(parametrosBusqueda).forEach((key) => {
+      if (
+        parametrosBusqueda[key] !== "" &&
+        parametrosBusqueda[key] !== undefined
+      ) {
         consulta[key] = parametrosBusqueda[key];
       }
     });
     let publicaciones = await Publicacion.find(consulta);
-    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
-      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+    if (
+      parametrosBusqueda.horaFin != undefined &&
+      parametrosBusqueda.horaFin.includes(":")
+    ) {
+      const FechahoraFin = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaFin)
+      );
       const horaFin = FechahoraFin.getHours();
       const minutosFin = FechahoraFin.getMinutes();
       const documentosHoraFin = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
 
-        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+        return hora < horaFin || (hora === horaFin && minutos <= minutosFin);
       });
-      publicaciones = documentosHoraFin
+      publicaciones = documentosHoraFin;
     }
 
-    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
-      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+    if (
+      parametrosBusqueda.horaInicio != undefined &&
+      parametrosBusqueda.horaInicio.includes(":")
+    ) {
+      const FechahoraInicio = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaInicio)
+      );
       const horaInicio = FechahoraInicio.getHours();
       const minutosInicio = FechahoraInicio.getMinutes();
       const documentosHoraInicio = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
-        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+        return (
+          hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio)
+        );
       });
-      publicaciones = documentosHoraInicio
+      publicaciones = documentosHoraInicio;
     }
 
-
-    barrios = Array.from(new Set(publicaciones.map(publicacion => publicacion['barrio'])));
+    barrios = Array.from(
+      new Set(publicaciones.map((publicacion) => publicacion["barrio"]))
+    );
     res.json({
       ok: true,
       msg: "Barrios obtenidos correctamente",
-      data: barrios
+      data: barrios,
     });
   } catch (error) {
     console.log(error);
@@ -79,7 +99,7 @@ const obtenerBarrios = async (req, res) => {
       msg: "Por favor hable con el administrador",
     });
   }
-}
+};
 
 const obtenerDatosCards = async (req, res) => {
   let publicacionesRegistradas = 0;
@@ -94,16 +114,24 @@ const obtenerDatosCards = async (req, res) => {
     const fechaActual = new Date();
 
     // Calcula el primer día del mes actual
-    const primerDiaMesActual = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 1);
+    const primerDiaMesActual = new Date(
+      fechaActual.getFullYear(),
+      fechaActual.getMonth(),
+      1
+    );
 
     // Calcula el último día del mes actual
-    const ultimoDiaMesActual = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0);
+    const ultimoDiaMesActual = new Date(
+      fechaActual.getFullYear(),
+      fechaActual.getMonth() + 1,
+      0
+    );
 
     // Consulta las publicaciones que se encuentran dentro del rango del mes actual
     publicacionesDelMes = await Publicacion.countDocuments({
       createdAt: {
         $gte: primerDiaMesActual,
-        $lte: ultimoDiaMesActual
+        $lte: ultimoDiaMesActual,
       },
     });
 
@@ -113,7 +141,6 @@ const obtenerDatosCards = async (req, res) => {
     // Obtenemos la fecha de fin del día actual
     const fechaFinDiaActual = new Date();
     fechaFinDiaActual.setHours(23, 59, 59, 999);
-
 
     // Realizamos la consulta a la base de datos para obtener el conteo
     publicacionesDelDia = await Publicacion.countDocuments({
@@ -129,8 +156,8 @@ const obtenerDatosCards = async (req, res) => {
         publicacionesRegistradas,
         usuariosRegistros,
         publicacionesDelMes,
-        publicacionesDelDia
-      }
+        publicacionesDelDia,
+      },
     });
   } catch (error) {
     console.log(error);
@@ -139,50 +166,67 @@ const obtenerDatosCards = async (req, res) => {
       msg: "Por favor hable con el administrador",
     });
   }
-}
+};
 
 const obtenerAnios = async (req, res) => {
   let anios = [];
   let consulta = {};
   try {
     const parametrosBusqueda = req.body;
-    Object.keys(parametrosBusqueda).forEach(key => {
-      if (parametrosBusqueda[key] != '') {
+    Object.keys(parametrosBusqueda).forEach((key) => {
+      if (parametrosBusqueda[key] != "") {
         consulta[key] = parametrosBusqueda[key];
       }
     });
     let publicaciones = await Publicacion.find(consulta);
-    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
-      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+    if (
+      parametrosBusqueda.horaFin != undefined &&
+      parametrosBusqueda.horaFin.includes(":")
+    ) {
+      const FechahoraFin = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaFin)
+      );
       const horaFin = FechahoraFin.getHours();
       const minutosFin = FechahoraFin.getMinutes();
       const documentosHoraFin = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
 
-        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+        return hora < horaFin || (hora === horaFin && minutos <= minutosFin);
       });
-      publicaciones = documentosHoraFin
+      publicaciones = documentosHoraFin;
     }
 
-    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
-      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+    if (
+      parametrosBusqueda.horaInicio != undefined &&
+      parametrosBusqueda.horaInicio.includes(":")
+    ) {
+      const FechahoraInicio = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaInicio)
+      );
       const horaInicio = FechahoraInicio.getHours();
       const minutosInicio = FechahoraInicio.getMinutes();
       const documentosHoraInicio = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
-        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+        return (
+          hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio)
+        );
       });
-      publicaciones = documentosHoraInicio
+      publicaciones = documentosHoraInicio;
     }
 
-
-    anios = Array.from(new Set(publicaciones.map(publicacion => new Date(publicacion.createdAt).getFullYear())));
+    anios = Array.from(
+      new Set(
+        publicaciones.map((publicacion) =>
+          new Date(publicacion.createdAt).getFullYear()
+        )
+      )
+    );
     res.json({
       ok: true,
       msg: "Años obtenidos correctamente",
-      data: anios
+      data: anios,
     });
   } catch (error) {
     console.log(error);
@@ -198,43 +242,59 @@ const obtenerEmergencias = async (req, res) => {
   let consulta = {};
   try {
     const parametrosBusqueda = req.body;
-    Object.keys(parametrosBusqueda).forEach(key => {
-      if (parametrosBusqueda[key] !== '' && parametrosBusqueda[key] !== undefined) {
+    Object.keys(parametrosBusqueda).forEach((key) => {
+      if (
+        parametrosBusqueda[key] !== "" &&
+        parametrosBusqueda[key] !== undefined
+      ) {
         consulta[key] = parametrosBusqueda[key];
       }
     });
     let publicaciones = await Publicacion.find(consulta);
-    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
-      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+    if (
+      parametrosBusqueda.horaFin != undefined &&
+      parametrosBusqueda.horaFin.includes(":")
+    ) {
+      const FechahoraFin = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaFin)
+      );
       const horaFin = FechahoraFin.getHours();
       const minutosFin = FechahoraFin.getMinutes();
       const documentosHoraFin = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
 
-        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+        return hora < horaFin || (hora === horaFin && minutos <= minutosFin);
       });
-      publicaciones = documentosHoraFin
+      publicaciones = documentosHoraFin;
     }
 
-    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
-      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+    if (
+      parametrosBusqueda.horaInicio != undefined &&
+      parametrosBusqueda.horaInicio.includes(":")
+    ) {
+      const FechahoraInicio = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaInicio)
+      );
       const horaInicio = FechahoraInicio.getHours();
       const minutosInicio = FechahoraInicio.getMinutes();
       const documentosHoraInicio = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
-        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+        return (
+          hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio)
+        );
       });
-      publicaciones = documentosHoraInicio
+      publicaciones = documentosHoraInicio;
     }
 
-
-    emergencias = Array.from(new Set(publicaciones.map(publicacion => publicacion['titulo'])));
+    emergencias = Array.from(
+      new Set(publicaciones.map((publicacion) => publicacion["titulo"]))
+    );
     res.json({
       ok: true,
       msg: "Emergencias obtenidas correctamente",
-      data: emergencias
+      data: emergencias,
     });
   } catch (error) {
     console.log(error);
@@ -257,16 +317,14 @@ const obtenerReporteBarras = async (req, res) => {
   try {
     const parametrosBusqueda = req.body;
 
-    Object.keys(parametrosBusqueda).forEach(key => {
-      if (parametrosBusqueda[key] !== '' && parametrosBusqueda[key] !== undefined) {
+    Object.keys(parametrosBusqueda).forEach((key) => {
+      if (
+        parametrosBusqueda[key] !== "" &&
+        parametrosBusqueda[key] !== undefined
+      ) {
         consulta[key] = parametrosBusqueda[key];
       }
     });
-
-
-
-
-
 
     if (parametrosBusqueda.fechaFin) {
       const fechaFin = new Date(parametrosBusqueda.fechaFin);
@@ -281,43 +339,55 @@ const obtenerReporteBarras = async (req, res) => {
       consulta.createdAt.$gte = fechaInicio;
     }
 
-
-
     let publicaciones = await Publicacion.find(consulta);
 
-    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
-      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+    if (
+      parametrosBusqueda.horaFin != undefined &&
+      parametrosBusqueda.horaFin.includes(":")
+    ) {
+      const FechahoraFin = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaFin)
+      );
       const horaFin = FechahoraFin.getHours();
       const minutosFin = FechahoraFin.getMinutes();
       const documentosHoraFin = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
 
-        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+        return hora < horaFin || (hora === horaFin && minutos <= minutosFin);
       });
-      publicaciones = documentosHoraFin
+      publicaciones = documentosHoraFin;
     }
 
-    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
-      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+    if (
+      parametrosBusqueda.horaInicio != undefined &&
+      parametrosBusqueda.horaInicio.includes(":")
+    ) {
+      const FechahoraInicio = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaInicio)
+      );
       const horaInicio = FechahoraInicio.getHours();
       const minutosInicio = FechahoraInicio.getMinutes();
       const documentosHoraInicio = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
-        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+        return (
+          hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio)
+        );
       });
-      publicaciones = documentosHoraInicio
+      publicaciones = documentosHoraInicio;
     }
 
     const conteoPorMes = {};
-    for (let index = (new Date(parametrosBusqueda.fechaInicio).getMonth()); index <= ((new Date(parametrosBusqueda.fechaFin).getMonth())); index++) {
+    for (
+      let index = new Date(parametrosBusqueda.fechaInicio).getMonth();
+      index <= new Date(parametrosBusqueda.fechaFin).getMonth();
+      index++
+    ) {
       conteoPorMes[index] = 0;
-
     }
 
-
-    publicaciones.forEach(publicacion => {
+    publicaciones.forEach((publicacion) => {
       const fecha = new Date(publicacion.createdAt);
       const mes = fecha.getMonth() + 1; // Los meses en JavaScript se representan del 0 al 11, por eso sumamos 1.
 
@@ -331,7 +401,7 @@ const obtenerReporteBarras = async (req, res) => {
     res.json({
       ok: true,
       msg: "Datos para barras obtenidas correctamente",
-      data: conteoPorMes
+      data: conteoPorMes,
     });
   } catch (error) {
     console.log(error);
@@ -346,16 +416,14 @@ const obtenerReportePastel = async (req, res) => {
   let consulta = {};
   try {
     const parametrosBusqueda = req.body;
-    Object.keys(parametrosBusqueda).forEach(key => {
-      if (parametrosBusqueda[key] !== '' && parametrosBusqueda[key] !== undefined) {
+    Object.keys(parametrosBusqueda).forEach((key) => {
+      if (
+        parametrosBusqueda[key] !== "" &&
+        parametrosBusqueda[key] !== undefined
+      ) {
         consulta[key] = parametrosBusqueda[key];
       }
     });
-
-
-
-
-
 
     if (parametrosBusqueda.fechaFin) {
       const fechaFin = new Date(parametrosBusqueda.fechaFin);
@@ -370,38 +438,46 @@ const obtenerReportePastel = async (req, res) => {
       consulta.createdAt.$gte = fechaInicio;
     }
 
-
     let publicaciones = await Publicacion.find(consulta);
-    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
-      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+    if (
+      parametrosBusqueda.horaFin != undefined &&
+      parametrosBusqueda.horaFin.includes(":")
+    ) {
+      const FechahoraFin = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaFin)
+      );
       const horaFin = FechahoraFin.getHours();
       const minutosFin = FechahoraFin.getMinutes();
       const documentosHoraFin = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
 
-        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+        return hora < horaFin || (hora === horaFin && minutos <= minutosFin);
       });
-      publicaciones = documentosHoraFin
+      publicaciones = documentosHoraFin;
     }
 
-    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
-      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+    if (
+      parametrosBusqueda.horaInicio != undefined &&
+      parametrosBusqueda.horaInicio.includes(":")
+    ) {
+      const FechahoraInicio = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaInicio)
+      );
       const horaInicio = FechahoraInicio.getHours();
       const minutosInicio = FechahoraInicio.getMinutes();
       const documentosHoraInicio = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
-        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+        return (
+          hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio)
+        );
       });
-      publicaciones = documentosHoraInicio
+      publicaciones = documentosHoraInicio;
     }
 
-
-    emergencias = publicaciones.forEach(publicacion => {
-      const {
-        titulo
-      } = publicacion;
+    emergencias = publicaciones.forEach((publicacion) => {
+      const { titulo } = publicacion;
       if (conteoEmergencias[titulo]) {
         conteoEmergencias[titulo]++;
       } else {
@@ -411,7 +487,7 @@ const obtenerReportePastel = async (req, res) => {
     res.json({
       ok: true,
       msg: "Datos de pastel",
-      data: conteoEmergencias
+      data: conteoEmergencias,
     });
   } catch (error) {
     console.log(error);
@@ -425,16 +501,14 @@ const obtenerMapaCalor = async (req, res) => {
   let consulta = {};
   try {
     const parametrosBusqueda = req.body;
-    Object.keys(parametrosBusqueda).forEach(key => {
-      if (parametrosBusqueda[key] !== '' && parametrosBusqueda[key] !== undefined) {
+    Object.keys(parametrosBusqueda).forEach((key) => {
+      if (
+        parametrosBusqueda[key] !== "" &&
+        parametrosBusqueda[key] !== undefined
+      ) {
         consulta[key] = parametrosBusqueda[key];
       }
     });
-
-
-
-
-
 
     if (parametrosBusqueda.fechaFin) {
       const fechaFin = new Date(parametrosBusqueda.fechaFin);
@@ -449,41 +523,62 @@ const obtenerMapaCalor = async (req, res) => {
       consulta.createdAt.$gte = fechaInicio;
     }
 
-
     let publicaciones = await Publicacion.find(consulta);
-    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
-      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+    if (
+      parametrosBusqueda.horaFin != undefined &&
+      parametrosBusqueda.horaFin.includes(":")
+    ) {
+      const FechahoraFin = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaFin)
+      );
       const horaFin = FechahoraFin.getHours();
       const minutosFin = FechahoraFin.getMinutes();
       const documentosHoraFin = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
 
-        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+        return hora < horaFin || (hora === horaFin && minutos <= minutosFin);
       });
-      publicaciones = documentosHoraFin
+      publicaciones = documentosHoraFin;
     }
 
-    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
-      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+    if (
+      parametrosBusqueda.horaInicio != undefined &&
+      parametrosBusqueda.horaInicio.includes(":")
+    ) {
+      const FechahoraInicio = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaInicio)
+      );
       const horaInicio = FechahoraInicio.getHours();
       const minutosInicio = FechahoraInicio.getMinutes();
       const documentosHoraInicio = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
-        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+        return (
+          hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio)
+        );
       });
-      publicaciones = documentosHoraInicio
+      publicaciones = documentosHoraInicio;
     }
 
-
-    const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    const heatmapData = Array.from({
-      length: 7
-    }, () => ({
-      name: '',
-      data: Array(24).fill(0)
-    }));
+    const diasSemana = [
+      "Domingo",
+      "Lunes",
+      "Martes",
+      "Miércoles",
+      "Jueves",
+      "Viernes",
+      "Sábado",
+    ];
+    const heatmapData = Array.from(
+      {
+        length: 7,
+      },
+      () => ({
+        name: "",
+        data: Array(24).fill(0),
+      })
+    );
 
     diasSemana.map((diaSemana, index) => {
       heatmapData[index].name = diasSemana[index];
@@ -507,26 +602,26 @@ const obtenerMapaCalor = async (req, res) => {
       }
     });
     const segmentSize = Math.ceil(maxCount / 3);
-    const ranges = [{
+    const ranges = [
+      {
         from: 1,
         to: segmentSize,
-        name: 'Bajo',
-        color: '#008FFB'
+        name: "Bajo",
+        color: "#008FFB",
       },
       {
         from: segmentSize + 1,
         to: segmentSize * 2,
-        name: 'Medio',
-        color: '#efa94a'
+        name: "Medio",
+        color: "#efa94a",
       },
       {
         from: segmentSize * 2 + 1,
         to: maxCount,
-        name: 'Alto',
-        color: '#FF4560'
+        name: "Alto",
+        color: "#FF4560",
       },
     ];
-
 
     res.json({
       ok: true,
@@ -534,8 +629,8 @@ const obtenerMapaCalor = async (req, res) => {
       data: {
         heatmapData,
         ranges,
-        total: publicaciones.length
-      }
+        total: publicaciones.length,
+      },
     });
   } catch (error) {
     console.log(error);
@@ -549,16 +644,14 @@ const obtenerCoordenadas = async (req, res) => {
   let consulta = {};
   try {
     const parametrosBusqueda = req.body;
-    Object.keys(parametrosBusqueda).forEach(key => {
-      if (parametrosBusqueda[key] !== '' && parametrosBusqueda[key] !== undefined) {
+    Object.keys(parametrosBusqueda).forEach((key) => {
+      if (
+        parametrosBusqueda[key] !== "" &&
+        parametrosBusqueda[key] !== undefined
+      ) {
         consulta[key] = parametrosBusqueda[key];
       }
     });
-
-
-
-
-
 
     if (parametrosBusqueda.fechaFin) {
       const fechaFin = new Date(parametrosBusqueda.fechaFin);
@@ -573,48 +666,55 @@ const obtenerCoordenadas = async (req, res) => {
       consulta.createdAt.$gte = fechaInicio;
     }
 
-
     let publicaciones = await Publicacion.find(consulta);
-    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
-      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+    if (
+      parametrosBusqueda.horaFin != undefined &&
+      parametrosBusqueda.horaFin.includes(":")
+    ) {
+      const FechahoraFin = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaFin)
+      );
       const horaFin = FechahoraFin.getHours();
       const minutosFin = FechahoraFin.getMinutes();
       const documentosHoraFin = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
 
-        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+        return hora < horaFin || (hora === horaFin && minutos <= minutosFin);
       });
-      publicaciones = documentosHoraFin
+      publicaciones = documentosHoraFin;
     }
 
-    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
-      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+    if (
+      parametrosBusqueda.horaInicio != undefined &&
+      parametrosBusqueda.horaInicio.includes(":")
+    ) {
+      const FechahoraInicio = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaInicio)
+      );
       const horaInicio = FechahoraInicio.getHours();
       const minutosInicio = FechahoraInicio.getMinutes();
       const documentosHoraInicio = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
-        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+        return (
+          hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio)
+        );
       });
-      publicaciones = documentosHoraInicio
+      publicaciones = documentosHoraInicio;
     }
 
-
-
-    const coordenadas = publicaciones.map(publicacion => {
+    const coordenadas = publicaciones.map((publicacion) => {
       return {
         titulo: publicacion.titulo,
-        position: [publicacion.latitud, publicacion.longitud]
-      }
+        position: [publicacion.latitud, publicacion.longitud],
+      };
     });
-
-
 
     res.json({
       ok: true,
       msg: "Datos de mapa  de calor",
-      data: coordenadas
+      data: coordenadas,
     });
   } catch (error) {
     console.log(error);
@@ -625,21 +725,18 @@ const obtenerCoordenadas = async (req, res) => {
   }
 };
 
-
 const descargarXLSX = async (req, res) => {
   let consulta = {};
   try {
     const parametrosBusqueda = req.body;
-    Object.keys(parametrosBusqueda).forEach(key => {
-      if (parametrosBusqueda[key] !== '' && parametrosBusqueda[key] !== undefined) {
+    Object.keys(parametrosBusqueda).forEach((key) => {
+      if (
+        parametrosBusqueda[key] !== "" &&
+        parametrosBusqueda[key] !== undefined
+      ) {
         consulta[key] = parametrosBusqueda[key];
       }
     });
-
-
-
-
-
 
     if (parametrosBusqueda.fechaFin) {
       const fechaFin = new Date(parametrosBusqueda.fechaFin);
@@ -654,48 +751,60 @@ const descargarXLSX = async (req, res) => {
       consulta.createdAt.$gte = fechaInicio;
     }
 
-
     let publicaciones = await Publicacion.find(consulta);
-    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
-      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+    if (
+      parametrosBusqueda.horaFin != undefined &&
+      parametrosBusqueda.horaFin.includes(":")
+    ) {
+      const FechahoraFin = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaFin)
+      );
       const horaFin = FechahoraFin.getHours();
       const minutosFin = FechahoraFin.getMinutes();
       const documentosHoraFin = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
 
-        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+        return hora < horaFin || (hora === horaFin && minutos <= minutosFin);
       });
-      publicaciones = documentosHoraFin
+      publicaciones = documentosHoraFin;
     }
 
-    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
-      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+    if (
+      parametrosBusqueda.horaInicio != undefined &&
+      parametrosBusqueda.horaInicio.includes(":")
+    ) {
+      const FechahoraInicio = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaInicio)
+      );
       const horaInicio = FechahoraInicio.getHours();
       const minutosInicio = FechahoraInicio.getMinutes();
       const documentosHoraInicio = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
-        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+        return (
+          hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio)
+        );
       });
-      publicaciones = documentosHoraInicio
+      publicaciones = documentosHoraInicio;
     }
-
 
     exportToExcel(publicaciones)
       .then((buffer) => {
         // Configurar las cabeceras para la descarga del archivo
-        res.setHeader('Content-Disposition', 'attachment; filename=datos.xlsx');
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader("Content-Disposition", "attachment; filename=datos.xlsx");
+        res.setHeader(
+          "Content-Type",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
 
         // Enviar el archivo de Excel como respuesta
         res.send(buffer);
       })
       .catch((error) => {
-        console.error('Error al generar el archivo de Excel:', error);
-        res.status(500).send('Error al generar el archivo de Excel.');
+        console.error("Error al generar el archivo de Excel:", error);
+        res.status(500).send("Error al generar el archivo de Excel.");
       });
-
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -709,16 +818,14 @@ const descargarCSV = async (req, res) => {
   let consulta = {};
   try {
     const parametrosBusqueda = req.body;
-    Object.keys(parametrosBusqueda).forEach(key => {
-      if (parametrosBusqueda[key] !== '' && parametrosBusqueda[key] !== undefined) {
+    Object.keys(parametrosBusqueda).forEach((key) => {
+      if (
+        parametrosBusqueda[key] !== "" &&
+        parametrosBusqueda[key] !== undefined
+      ) {
         consulta[key] = parametrosBusqueda[key];
       }
     });
-
-
-
-
-
 
     if (parametrosBusqueda.fechaFin) {
       const fechaFin = new Date(parametrosBusqueda.fechaFin);
@@ -733,48 +840,60 @@ const descargarCSV = async (req, res) => {
       consulta.createdAt.$gte = fechaInicio;
     }
 
-
     let publicaciones = await Publicacion.find(consulta);
-    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
-      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+    if (
+      parametrosBusqueda.horaFin != undefined &&
+      parametrosBusqueda.horaFin.includes(":")
+    ) {
+      const FechahoraFin = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaFin)
+      );
       const horaFin = FechahoraFin.getHours();
       const minutosFin = FechahoraFin.getMinutes();
       const documentosHoraFin = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
 
-        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+        return hora < horaFin || (hora === horaFin && minutos <= minutosFin);
       });
-      publicaciones = documentosHoraFin
+      publicaciones = documentosHoraFin;
     }
 
-    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
-      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+    if (
+      parametrosBusqueda.horaInicio != undefined &&
+      parametrosBusqueda.horaInicio.includes(":")
+    ) {
+      const FechahoraInicio = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaInicio)
+      );
       const horaInicio = FechahoraInicio.getHours();
       const minutosInicio = FechahoraInicio.getMinutes();
       const documentosHoraInicio = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
-        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+        return (
+          hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio)
+        );
       });
-      publicaciones = documentosHoraInicio
+      publicaciones = documentosHoraInicio;
     }
-
 
     exportToCSV(publicaciones)
       .then((buffer) => {
         // Configurar las cabeceras para la descarga del archivo
-        res.setHeader('Content-Disposition', 'attachment; filename=datos.xlsx');
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader("Content-Disposition", "attachment; filename=datos.xlsx");
+        res.setHeader(
+          "Content-Type",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
 
         // Enviar el archivo de Excel como respuesta
         res.send(buffer);
       })
       .catch((error) => {
-        console.error('Error al generar el archivo de Excel:', error);
-        res.status(500).send('Error al generar el archivo de Excel.');
+        console.error("Error al generar el archivo de Excel:", error);
+        res.status(500).send("Error al generar el archivo de Excel.");
       });
-
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -788,17 +907,15 @@ const descargarPDF = async (req, res) => {
   let consulta = {};
   try {
     const parametrosBusqueda = req.body;
-    console.log(parametrosBusqueda);
-    Object.keys(parametrosBusqueda).forEach(key => {
-      if (parametrosBusqueda[key] !== '' && parametrosBusqueda[key] !== undefined) {
+
+    Object.keys(parametrosBusqueda).forEach((key) => {
+      if (
+        parametrosBusqueda[key] !== "" &&
+        parametrosBusqueda[key] !== undefined
+      ) {
         consulta[key] = parametrosBusqueda[key];
       }
     });
-
-
-
-
-
 
     if (parametrosBusqueda.fechaFin) {
       const fechaFin = new Date(parametrosBusqueda.fechaFin);
@@ -813,97 +930,121 @@ const descargarPDF = async (req, res) => {
       consulta.createdAt.$gte = fechaInicio;
     }
 
-
     let publicaciones = await Publicacion.find(consulta);
-    if (parametrosBusqueda.horaFin != undefined && parametrosBusqueda.horaFin.includes(':')) {
-      const FechahoraFin = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaFin));
+    if (
+      parametrosBusqueda.horaFin != undefined &&
+      parametrosBusqueda.horaFin.includes(":")
+    ) {
+      const FechahoraFin = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaFin)
+      );
       const horaFin = FechahoraFin.getHours();
       const minutosFin = FechahoraFin.getMinutes();
       const documentosHoraFin = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
 
-        return (hora < horaFin || (hora === horaFin && minutos <= minutosFin));
+        return hora < horaFin || (hora === horaFin && minutos <= minutosFin);
       });
-      publicaciones = documentosHoraFin
+      publicaciones = documentosHoraFin;
     }
 
-    if (parametrosBusqueda.horaInicio != undefined && parametrosBusqueda.horaInicio.includes(':')) {
-      const FechahoraInicio = convertToEcuadorTimeZone(new Date(parametrosBusqueda.horaInicio));
+    if (
+      parametrosBusqueda.horaInicio != undefined &&
+      parametrosBusqueda.horaInicio.includes(":")
+    ) {
+      const FechahoraInicio = convertToEcuadorTimeZone(
+        new Date(parametrosBusqueda.horaInicio)
+      );
       const horaInicio = FechahoraInicio.getHours();
       const minutosInicio = FechahoraInicio.getMinutes();
       const documentosHoraInicio = publicaciones.filter((publicacion) => {
         const hora = publicacion.createdAt.getHours();
         const minutos = publicacion.createdAt.getMinutes();
-        return (hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio));
+        return (
+          hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio)
+        );
       });
-      publicaciones = documentosHoraInicio
+      publicaciones = documentosHoraInicio;
     }
 
-   // Configurar los encabezados de la respuesta para descargar el archivo PDF
-   const filename = 'archivo.pdf';
-   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-   res.setHeader('Content-Type', 'application/pdf');
- 
-   // Obtener la ruta absoluta de las fuentes Roboto
-   const fonts = {
-    Roboto: {
-      normal: require.resolve('pdfmake-unicode/src/fonts/Arial GEO/Roboto-Regular.ttf'),
-      bold: require.resolve('pdfmake-unicode/src/fonts/Arial GEO/Roboto-Medium.ttf'),
-     },
-    
-  };
- 
-   // Crear un objeto de definición de PDF utilizando pdfmake
-   const printer = new pdfMakePrinter(fonts);
-   const docDefinition = {
-     content: [
-       { text: 'Lista de Publicaciones', style: 'header' },
-       {
-         table: {
-           headerRows: 1,
-           widths: ['auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'],
-           body: [
-             [{ text: 'Título', style: 'header2'}
-             , { text: 'Contenido', style: 'header2'}
-             , { text: 'Ciudad', style: 'header2'}
-             , { text: 'Barrio', style: 'header2'}
-             , { text: 'Nombre de Usuario',  style: 'header2'}
-             , { text: 'Latitud', style: 'header2'}
-             , { text: 'Longitud', style: 'header2'}
-    
+    //TODO: Generar el PDF
+
+    pdf.create(pdfTemplate(publicaciones), {}).toFile("result.pdf", (err) => {
+      if (err) {
+        // send(Promise.reject());
+      }
+
+      // send(Promise.resolve());
+    });
+
+    // Configurar los encabezados de la respuesta para descargar el archivo PDF
+    const filename = "archivo.pdf";
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Content-Type", "application/pdf");
+
+    // Obtener la ruta absoluta de las fuentes Roboto
+    const fonts = {
+      Roboto: {
+        normal: require.resolve(
+          "pdfmake-unicode/src/fonts/Arial GEO/Roboto-Regular.ttf"
+        ),
+        bold: require.resolve(
+          "pdfmake-unicode/src/fonts/Arial GEO/Roboto-Medium.ttf"
+        ),
+      },
+    };
+
+    // Crear un objeto de definición de PDF utilizando pdfmake
+    const printer = new pdfMakePrinter(fonts);
+    const docDefinition = {
+      content: [
+        { text: "Lista de Publicaciones", style: "header" },
+        {
+          table: {
+            headerRows: 1,
+            widths: ["auto", "auto", "auto", "auto", "auto", "auto", "auto"],
+            body: [
+              [
+                { text: "Título", style: "header2" },
+                { text: "Contenido", style: "header2" },
+                { text: "Ciudad", style: "header2" },
+                { text: "Barrio", style: "header2" },
+                { text: "Nombre de Usuario", style: "header2" },
+                { text: "Latitud", style: "header2" },
+                { text: "Longitud", style: "header2" },
+              ],
+              ...publicaciones.map((publicacion) => [
+                publicacion.titulo,
+                publicacion.contenido,
+                publicacion.ciudad,
+                publicacion.barrio,
+                publicacion.nombreUsuario,
+                publicacion.latitud.toString(),
+                publicacion.longitud.toString(),
+              ]),
             ],
-             ...publicaciones.map((publicacion) => [
-               publicacion.titulo,
-               publicacion.contenido,
-               publicacion.ciudad,
-               publicacion.barrio,
-               publicacion.nombreUsuario,
-               publicacion.latitud.toString(),
-               publicacion.longitud.toString(),
-             ]),
-           ],
-         },
-       },
-     ],
-     styles: {
-       header: {
-         fontSize: 18,
-         bold: true,
-         alignment: 'center',
-       },
-       header2: {
-         fontSize: 12,
-         bold: true,
-         alignment: 'center',
-       },
-     },
-   };
- 
-   // Crear el documento PDF utilizando pdfmake
-   const pdfDoc = printer.createPdfKitDocument(docDefinition);
-   pdfDoc.pipe(res);
-   pdfDoc.end();
+          },
+        },
+      ],
+      styles: {
+        header: {
+          fontSize: 18,
+          bold: true,
+          alignment: "center",
+        },
+        header2: {
+          fontSize: 12,
+          bold: true,
+          alignment: "center",
+        },
+      },
+    };
+
+    // Crear el documento PDF utilizando pdfmake
+    const pdfDoc = printer.createPdfKitDocument(docDefinition);
+    pdfDoc.pipe(res);
+    pdfDoc.end();
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -911,46 +1052,44 @@ const descargarPDF = async (req, res) => {
       msg: "Por favor hable con el administrador",
     });
   }
-
 };
 // Función para exportar un array de objetos a Excel
 async function exportToExcel(dataArray) {
   const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Datos');
+  const worksheet = workbook.addWorksheet("Datos");
 
   // Definir los encabezados de las columnas en la hoja de cálculo
-  let objeto = dataArray[0]._doc
-  delete objeto._id
-  delete objeto.color
-  delete objeto.isPublic
-  delete objeto.usuario
-  delete objeto.likes
-  delete objeto.imagenes
-  delete objeto.comentarios
-  delete objeto.__v
-  delete objeto.isActivo
-  delete objeto.isLiked
-  delete objeto.imgAlerta
-  delete objeto.isPublicacionPendiente
+  let objeto = dataArray[0]._doc;
+  delete objeto._id;
+  delete objeto.color;
+  delete objeto.isPublic;
+  delete objeto.usuario;
+  delete objeto.likes;
+  delete objeto.imagenes;
+  delete objeto.comentarios;
+  delete objeto.__v;
+  delete objeto.isActivo;
+  delete objeto.isLiked;
+  delete objeto.imgAlerta;
+  delete objeto.isPublicacionPendiente;
   const columnHeaders = Object.keys(objeto);
   worksheet.addRow(columnHeaders);
 
   // Llenar la hoja de cálculo con los datos de los objetos
   dataArray.forEach((dataObj) => {
-    let objeto = Object.values(dataObj)[2]
-    delete objeto._id
-    delete objeto.color
-    delete objeto.isPublic
-    delete objeto.usuario
-    delete objeto.likes
-    delete objeto.imagenes
-    delete objeto.comentarios
-    delete objeto.__v
-    delete objeto.isActivo
-    delete objeto.isLiked
-    delete objeto.imgAlerta
-    delete objeto.isPublicacionPendiente
-
+    let objeto = Object.values(dataObj)[2];
+    delete objeto._id;
+    delete objeto.color;
+    delete objeto.isPublic;
+    delete objeto.usuario;
+    delete objeto.likes;
+    delete objeto.imagenes;
+    delete objeto.comentarios;
+    delete objeto.__v;
+    delete objeto.isActivo;
+    delete objeto.isLiked;
+    delete objeto.imgAlerta;
+    delete objeto.isPublicacionPendiente;
 
     worksheet.addRow(Object.values(objeto));
   });
@@ -968,31 +1107,24 @@ async function exportToExcel(dataArray) {
     column.width = Math.min(maxLength < 12 ? 12 : maxLength, 16384);
   });
 
-
-
-
-
-
   // Devolver el archivo de Excel como un buffer
   const buffer = await workbook.xlsx.writeBuffer();
   return buffer;
 }
-
-
 
 // Función para exportar un array de objetos a Excel
 async function exportToCSV(dataArray) {
   const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Datos');
+  const worksheet = workbook.addWorksheet("Datos");
 
   // Definir los encabezados de las columnas en la hoja de cálculo
-  let objeto = dataArray[0]._doc
+  let objeto = dataArray[0]._doc;
   const columnHeaders = Object.keys(objeto);
   worksheet.addRow(columnHeaders);
 
   // Llenar la hoja de cálculo con los datos de los objetos
   dataArray.forEach((dataObj) => {
-    let objeto = Object.values(dataObj)[2]
+    let objeto = Object.values(dataObj)[2];
     worksheet.addRow(Object.values(objeto));
   });
   worksheet.columns.forEach((column, index) => {
@@ -1009,18 +1141,10 @@ async function exportToCSV(dataArray) {
     column.width = Math.min(maxLength < 12 ? 12 : maxLength, 16384);
   });
 
-
-
-
-
-
   // Devolver el archivo de Excel como un buffer
   const buffer = await workbook.xlsx.writeBuffer();
   return buffer;
 }
-
-
-
 
 module.exports = {
   obtenerCiudades,
@@ -1034,6 +1158,5 @@ module.exports = {
   obtenerCoordenadas,
   descargarXLSX,
   descargarPDF,
-  descargarCSV
-
+  descargarCSV,
 };

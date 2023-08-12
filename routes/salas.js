@@ -1,18 +1,17 @@
 const { Router } = require("express");
 const {
   crearSala,
-  grabarMensajeSala,
   getSalas,
   unirseSala,
   obtenerSalasMensajesUsuario,
   getMensajesBySala,
   getMensajesSala,
   updateSala,
-  deleteSala,
   obtenerUsuariosSala,
+  deleteSala,
   deleteUserById,
-  getSalasByUser,
   abandonarSala,
+  getSalasByUser,
   obtenerSalasConMensajesNoLeidos,
   cambiarEstadoSala,
 } = require("../controllers/salas");
@@ -28,8 +27,6 @@ router.get("/", getSalas);
 router.put("/:salaId", updateSala);
 
 router.delete("/:salaId", validarJWT,deleteSala);
-
-router.post("/grabar-mensaje", validarJWT, grabarMensajeSala);
 
 router.post("/unir-sala", validarJWT, unirseSala);
 
