@@ -46,7 +46,6 @@ const getMensajeByRoom = async (req, res) => {
       })
     );
 
-    // Obtener al usuario que está viendo los mensajes de la sala
     const usuario = await Usuario.findById(usuarioId);
 
     // Encontrar la entrada correspondiente en la lista de salas del usuario para la sala específica
@@ -55,7 +54,7 @@ const getMensajeByRoom = async (req, res) => {
     // Reiniciar el contador de mensajes no leídos (mensajesNoLeidos) a cero para esa entrada
     if (salaUsuario) {
       salaUsuario.mensajesNoLeidos = 0;
-      await usuario.save(); // Guardar los cambios en el usuario en la base de datos
+      await usuario.save(); 
     }
 
     res.json({

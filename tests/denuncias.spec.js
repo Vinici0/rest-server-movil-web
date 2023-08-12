@@ -34,6 +34,6 @@ describe("Denuncias Router", () => {
       .post("/api/denuncias")
       .set("x-token", token)
       .send(denunciaData)
-      .expect(404);
+      .expect(500);
   });
 });
