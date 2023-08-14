@@ -26,12 +26,15 @@ router.get("/", getSalas);
 
 router.put("/:salaId", updateSala);
 
-router.delete("/:salaId", validarJWT,deleteSala);
+router.delete("/:salaId", validarJWT, deleteSala);
 
 router.post("/unir-sala", validarJWT, unirseSala);
 
-// obtenerSalasConMensajesNoLeidos
-router.get("/obtener-salas-mensajes-usuario", validarJWT, obtenerSalasConMensajesNoLeidos);
+router.get(
+  "/obtener-salas-mensajes-usuario",
+  validarJWT,
+  obtenerSalasConMensajesNoLeidos
+);
 
 router.put("/cambiar-estado-sala/:salaId", validarJWT, cambiarEstadoSala);
 

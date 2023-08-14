@@ -50,7 +50,7 @@ const NotificacionSchema = Schema(
 
 NotificacionSchema.method('toJSON', function () {
   const { __v, _id,...object } = this.toObject();
-  object.uid = _id;  // Cambio aquí para mantener el campo _id
+  object.uid = _id;  
   return object;
 });
 

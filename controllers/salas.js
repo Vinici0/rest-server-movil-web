@@ -479,6 +479,8 @@ const obtenerUsuariosSala = async (req, res) => {
       },
     });
 
+    console.log(sala);
+
     if (!sala) {
       return res.status(404).json({
         ok: false,

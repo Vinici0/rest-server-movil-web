@@ -91,11 +91,12 @@ const guardarPublicacion = async (req, res) => {
       await usuario.save();
     }
 
-    await enviarNotificacion(tokens, titulo, contenido);
+    //TODO: Notificar a los usuarios en el radio
+    const publicacion2 = publicacion.toObject();
+    publicacion2.type = "publication";
+    delete publicacion2.__v;
+    await enviarNotificacion(tokens, titulo, contenido, publicacion2);
 
-    // Guardar la notificación relacionada con la publicación a todos los usuarios en usuariosEnRadio
-
-    //quitar el usuario que envia la notificacion
      const usuariosEnRadio2 = usuariosEnRadio.filter((usuario) => usuario._id.toString() !== usuarioId.toString()); 
 
     for (const usuario of usuariosEnRadio2) {

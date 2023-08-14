@@ -41,6 +41,7 @@ io.on("connection", (client) => {
   });
 
   client.on("mensaje-grupal", async (payload) => {
+    console.log(payload);
     grabarMensajeSala(payload);
     client.broadcast.to(payload.para).emit("mensaje-grupal", payload);
   });

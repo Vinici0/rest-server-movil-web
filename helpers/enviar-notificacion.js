@@ -1,18 +1,11 @@
 const axios = require("axios");
 const { guardarNotificacion } = require("../controllers/notificaciones");
 
-const enviarNotificacion = async (tokens, titulo, desc, usuario = {}) => {
+const enviarNotificacion = async (tokens, titulo, desc, data = {}) => {
   if (tokens.length === 0) {
     console.log("No hay tokens");
     return;
   }
-  const data = {
-    nombre: usuario.nombre,
-    latitud: usuario.latitud ?? "",
-    longitud: usuario.longitud ?? "",
-    img: usuario.img ?? "",
-    google: usuario.google,
-  };
 
   try {
     const response = await axios.post(
@@ -24,7 +17,7 @@ const enviarNotificacion = async (tokens, titulo, desc, usuario = {}) => {
         },
         priority: "high",
         data: {
-          usuario: JSON.stringify(data),
+          data: JSON.stringify(data),
         },
         registration_ids: tokens,
       },
@@ -35,6 +28,8 @@ const enviarNotificacion = async (tokens, titulo, desc, usuario = {}) => {
         },
       }
     );
+
+    console.log(response.data);
 
   } catch (error) {
     console.log(error);

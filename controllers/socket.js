@@ -101,9 +101,18 @@ const grabarMensajeSala = async (payload) => {
     const tokens = usuariosEnGrupoOffline.map((usuario) => usuario.tokenApp);
     const titulo = "Nuevo mensaje";
     const desc = `Tienes un nuevo mensaje en el grupo ${sala.nombre}`;
-    // Unificar los arreglos de tokens usando concat
+
+    const data = {
+      salaId: sala._id,
+      nombre: sala.nombre,
+      mensajesNoLeidos: sala.mensajesNoLeidos,
+      ultimaVezActivo: sala.ultimaVezActivo,
+      type: "sala",
+    };
+
     const allTokens = [].concat(...tokens);
-    await enviarNotificacion(allTokens, titulo, desc);
+    //TODO: enviar notificación
+    await enviarNotificacion(allTokens, titulo, desc, data);
     return true;
   } catch (error) {
     console.log(error);
@@ -117,7 +126,7 @@ const obtenerUsuariosSalaHelper = async (salaId, usuarioId) => {
     const usuariosEnSala = await Usuario.find({
       "salas.salaId": salaId,
       "salas.isRoomOpen": false,
-      "_id": { $ne: usuarioId }
+      _id: { $ne: usuarioId },
     });
 
     return usuariosEnSala;

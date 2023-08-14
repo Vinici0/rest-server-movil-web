@@ -40,7 +40,9 @@ const getMensajeByRoom = async (req, res) => {
 
     const mensajesSala = await Promise.all(
       sala.mensajes.map(async (mensaje) => {
+
         const usuarioMensaje = await Usuario.findById(mensaje.usuario);
+
         mensaje = { ...mensaje, nombre: usuarioMensaje.nombre, img: usuarioMensaje.img, isGoogle: usuarioMensaje.google };
         return mensaje;
       })

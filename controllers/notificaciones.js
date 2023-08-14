@@ -2,18 +2,22 @@ const { Notificacion } = require("../models");
 
 const obtenerNotificacionesUsuario = async (req, res) => {
   const usuarioId = req.uid;
+  const { limite = 10, desde = 0 } = req.query;
+
   try {
-    //populate para traer los datos del usuario que envia la notificacion
     const notificaciones = await Notificacion.find({
       usuario: usuarioId,
     })
-    .populate(
-      "publicacion",
-      "titulo contenido color ciudad barrio isPublic usuario likes imagenes latitud longitud comentarios imgAlerta isLiked createdAt updatedAt nombreUsuario isPublicacionPendiente"
-    )
-      .populate("usuarioRemitente", "nombre img telefono email google").sort({createdAt: -1});
+      .populate(
+        "publicacion",
+        "titulo contenido color ciudad barrio isPublic usuario likes imagenes latitud longitud comentarios imgAlerta isLiked createdAt updatedAt nombreUsuario isPublicacionPendiente"
+      )
+      .populate("usuarioRemitente", "nombre img telefono email google")
+      .sort({ createdAt: -1 })
+      .skip(Number(desde))
+      .limit(Number(limite));
 
-      //que solo
+    //que solo
 
     res.json({
       ok: true,
@@ -21,7 +25,7 @@ const obtenerNotificacionesUsuario = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({  
+    res.status(500).json({
       ok: false,
       msg: "Por favor hable con el administrador",
     });
@@ -74,14 +78,12 @@ const guardarNotificacion = async (
       tipo,
       usuario,
       publicacion: tipo === "publicacion" ? relacionadoId : null,
-      telefonoDestino: tipo === "sos"
-       ? telefonoUsuario : null,
+      telefonoDestino: tipo === "sos" ? telefonoUsuario : null,
       mensaje,
       latitud,
       longitud,
-      usuarioRemitente
+      usuarioRemitente,
     });
-
 
     await notificacion.save();
 

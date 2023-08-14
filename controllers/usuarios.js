@@ -211,15 +211,6 @@ const enviarNotificacionesArrayTelefonos = async (req, res) => {
     if (!usuario) {
       return res.status(404).json({ mensaje: "Usuario no encontrado" });
     }
-    const data = {
-      nombre: usuario.nombre,
-      latitud: lat,
-      longitud: lng,
-      img: usuario.img,
-      google: usuario.google,
-    };
-
-
 
     const telefonos = usuario.telefonos; // Obtener el arreglo de teléfonos del usuario
 
@@ -230,6 +221,17 @@ const enviarNotificacionesArrayTelefonos = async (req, res) => {
 
     const titulo = `${usuario.nombre} necesita ayuda`;
     const contenido = "Presiona para ver la ubicación";
+
+    //TODO: Notificación SOS
+    const data = {
+      nombre: usuario.nombre,
+      latitud: lat,
+      longitud: lng,
+      img: usuario.img,
+      google: usuario.google,
+      type: "sos",
+    };
+
     await enviarNotificacion(tokens, titulo, contenido, data);
 
     for (const usuarioDestino of usuariosConTelefono) {
@@ -325,7 +327,9 @@ const marcarNotificacionesPendienteFalse = async (req, res) => {
     console.error(error);
     res
       .status(500)
-      .json({ mensaje: "Error al actualizar el campo isNotificacionesPendiente" });
+      .json({
+        mensaje: "Error al actualizar el campo isNotificacionesPendiente",
+      });
   }
 };
 
@@ -354,7 +358,6 @@ const eliminarTokenApp = async (req, res) => {
   }
 };
 
-
 module.exports = {
   getUsuarios,
   actualizarUsuario,
@@ -368,5 +371,5 @@ module.exports = {
   marcarPublicacionPendienteFalse,
   marcarSalaPendienteFalse,
   marcarNotificacionesPendienteFalse,
-  eliminarTokenApp
+  eliminarTokenApp,
 };
