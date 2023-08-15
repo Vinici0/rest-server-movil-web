@@ -77,7 +77,7 @@ const guardarNotificacion = async (
     const notificacion = new Notificacion({
       tipo,
       usuario,
-      publicacion: tipo === "publicacion" ? relacionadoId : null,
+      publicacion: tipo === "publicacion" || tipo === "mensaje" ? relacionadoId : null,
       telefonoDestino: tipo === "sos" ? telefonoUsuario : null,
       mensaje,
       latitud,

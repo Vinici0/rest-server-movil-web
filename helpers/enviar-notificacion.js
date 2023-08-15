@@ -65,6 +65,33 @@ const guardarNotificacionPublicacion = async (
   }
 };
 
+const guardarNotificacionPublicacionMensaje = async (
+  usuario,
+  mensaje,
+  publicacionId,
+  latitud,
+  longitud,
+  usuarioRemitente
+) => {
+  try {
+    const notificacion = await guardarNotificacion(
+      "mensaje",
+      usuario,
+      mensaje,
+      publicacionId,
+      null,
+      latitud,
+      longitud,
+      usuarioRemitente
+    );
+
+    return notificacion;
+  } catch (error) {
+    console.log(error);
+    throw new Error("Error al guardar la notificación de publicación");
+  }
+};
+
 // Controlador para guardar una notificación relacionada con una solicitud
 const guardarNotificacionSOS = async (
   usuario,
@@ -97,4 +124,5 @@ module.exports = {
   enviarNotificacion,
   guardarNotificacionPublicacion,
   guardarNotificacionSOS,
+  guardarNotificacionPublicacionMensaje
 };

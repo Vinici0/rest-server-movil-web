@@ -4,7 +4,7 @@ const NotificacionSchema = Schema(
   {
     tipo: {
       type: String,
-      enum: ['publicacion', 'sos'],
+      enum: ['publicacion', 'sos', 'mensaje'],
       required: true,
     },
     usuario: {
