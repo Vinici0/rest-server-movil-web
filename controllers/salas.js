@@ -2,6 +2,7 @@ const { Mensaje, Sala, Usuario } = require("../models");
 
 const { generarCodigoUnico } = require("../helpers/generar-aleatorio");
 const _ = require("lodash");
+const { enviarNotificacion } = require("../helpers/enviar-notificacion");
 // const { obtenerUsuariosSalaHelper } = require("../helpers/obtener-usuario");
 
 const obtenerMensajesSala = async (req, res) => {
@@ -470,6 +471,8 @@ const deleteSala = async (req, res) => {
 
 const obtenerUsuariosSala = async (req, res) => {
   const { salaId } = req.params;
+
+    console.log(salaId);
   try {
     const sala = await Sala.findById(salaId).populate({
       path: "usuarios",
@@ -487,6 +490,8 @@ const obtenerUsuariosSala = async (req, res) => {
         msg: "Sala no encontrada",
       });
     }
+
+    
 
     res.json({
       ok: true,
@@ -547,14 +552,32 @@ const deleteUserById = async (req, res) => {
       ok: true,
       msg: "Usuario eliminado exitosamente de la sala",
     });
-  } catch (error) {
-    console.log(error);
+
+    //notificar al miemro eliminado que fue eliminado
+    const usuarioEliminado = await Usuario.findById(usuarioId);
+    const usuarioEliminador = await Usuario.findById(uid);
+    const mensaje = {
+      titulo: "Eliminado de sala",
+      cuerpo: `El usuario ${usuarioEliminador.nombre} te ha eliminado de la sala ${sala.nombre}`,
+    };
+
+    // await enviarNotificacion( usuarioEliminado.tokenApp, mensaje.titulo, mensaje.cuerpo,sala); 
+      //tokens, titulo, desc, data = {}
+
     res.status(500).json({
       ok: false,
       msg: "Por favor hable con el administrador",
     });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      msg: "Por favor hable con el administradorrr",
+    });
   }
 };
+
 
 const abandonarSala = async (req, res) => {
   const { salaId } = req.params;

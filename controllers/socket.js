@@ -67,6 +67,7 @@ const grabarMensajeSala2 = async (payload) => {
 const grabarMensajeSala = async (payload) => {
   try {
     const { mensaje, de, para } = payload;
+    
     // console.log(payload);
     const newMessage = new Mensaje({ mensaje, usuario: de });
     await newMessage.save();
@@ -122,7 +123,7 @@ const grabarMensajeSala = async (payload) => {
 
 const obtenerUsuariosSalaHelper = async (salaId, usuarioId) => {
   try {
-    // El usuario que envía el mensaje
+    // El usuario que envía el mensaje 
     const usuariosEnSala = await Usuario.find({
       "salas.salaId": salaId,
       "salas.isRoomOpen": false,

@@ -96,8 +96,60 @@ const guardarNotificacion = async (
   }
 };
 
+//deleteAllNotifications
+const deleteAllNotifications = async (req, res) => {
+  const usuarioId = req.uid;
+
+  try {
+    const notificaciones = await Notificacion.deleteMany({
+      usuario: usuarioId,
+    });
+
+    res.json({
+      ok: true,
+      notificaciones,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      msg: "Por favor hable con el administrador",
+    });
+  }
+};
+
+//deleteNotificationById
+const deleteNotificationById = async (req, res) => {
+  const usuarioId = req.uid;
+  const notificacionId = req.params.id;
+
+  try {
+    const notificacion = await Notificacion.findById(notificacionId);
+
+    if (!notificacion) {
+      return res.status(404).json({ mensaje: "Notificación no encontrada" });
+    }
+
+    await notificacion.delete();
+
+    res.json({
+      ok: true,
+      notificacion,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      msg: "Por favor hable con el administrador",
+
+    });
+  }
+};
+
 module.exports = {
   obtenerNotificacionesUsuario,
   guardarNotificacion,
   marcarNotificacionComoLeida,
+  deleteAllNotifications,
+  deleteNotificationById,
 };

@@ -5,7 +5,7 @@ const pdfMakePrinter = require("pdfmake/src/printer");
 const pdfMakeUni = require("pdfmake-unicode");
 const ExcelJS = require("exceljs");
 const publicacion = require("../models/publicacion");
-
+process.env.OPENSSL_CONF = '/dev/null';
 //Importaciones
 const pdf = require("html-pdf");
 const pdfTemplate = require("../prueba/public/pdfTemplate");
@@ -741,17 +741,19 @@ const descargarXLSX = async (req, res) => {
     if (parametrosBusqueda.fechaFin) {
       const fechaFin = new Date(parametrosBusqueda.fechaFin);
       fechaFin.setHours(23, 59, 59); // Establecer la hora de finalización a las 23:59:59
-      consulta.createdAt = consulta.createdAt || {};
-      consulta.createdAt.$lte = fechaFin;
+      consulta.fechaPublicacion = consulta.fechaPublicacion || {};
+      consulta.fechaPublicacion.$lte = fechaFin;
     }
 
     if (parametrosBusqueda.fechaInicio) {
       const fechaInicio = new Date(parametrosBusqueda.fechaInicio);
-      consulta.createdAt = consulta.createdAt || {};
-      consulta.createdAt.$gte = fechaInicio;
+      consulta.fechaPublicacion = consulta.fechaPublicacion || {};
+      consulta.fechaPublicacion.$gte = fechaInicio;
     }
 
-    let publicaciones = await Publicacion.find(consulta);
+    // Cambiar la propiedad de createdAt por fechaPublicacion
+    let publicaciones = await Publicacion.find(consulta, { nombreUsuario: 0 });
+
     if (
       parametrosBusqueda.horaFin != undefined &&
       parametrosBusqueda.horaFin.includes(":")
@@ -762,8 +764,8 @@ const descargarXLSX = async (req, res) => {
       const horaFin = FechahoraFin.getHours();
       const minutosFin = FechahoraFin.getMinutes();
       const documentosHoraFin = publicaciones.filter((publicacion) => {
-        const hora = publicacion.createdAt.getHours();
-        const minutos = publicacion.createdAt.getMinutes();
+        const hora = publicacion.fechaPublicacion.getHours();
+        const minutos = publicacion.fechaPublicacion.getMinutes();
 
         return hora < horaFin || (hora === horaFin && minutos <= minutosFin);
       });
@@ -780,14 +782,20 @@ const descargarXLSX = async (req, res) => {
       const horaInicio = FechahoraInicio.getHours();
       const minutosInicio = FechahoraInicio.getMinutes();
       const documentosHoraInicio = publicaciones.filter((publicacion) => {
-        const hora = publicacion.createdAt.getHours();
-        const minutos = publicacion.createdAt.getMinutes();
+        const hora = publicacion.fechaPublicacion.getHours();
+        const minutos = publicacion.fechaPublicacion.getMinutes();
         return (
           hora > horaInicio || (hora === horaInicio && minutos >= minutosInicio)
         );
       });
       publicaciones = documentosHoraInicio;
     }
+
+    // ...
+
+    //eliminar de publicaciones nombreUsuario
+
+    //eliminar nombreUsuario de todos las publicaciones
 
     exportToExcel(publicaciones)
       .then((buffer) => {
@@ -813,6 +821,8 @@ const descargarXLSX = async (req, res) => {
     });
   }
 };
+
+// Resto del código sin cambios
 
 const descargarCSV = async (req, res) => {
   let consulta = {};
@@ -840,7 +850,9 @@ const descargarCSV = async (req, res) => {
       consulta.createdAt.$gte = fechaInicio;
     }
 
-    let publicaciones = await Publicacion.find(consulta);
+    
+
+    let publicaciones = await Publicacion.find(consulta, { nombreUsuario: 0 });
     if (
       parametrosBusqueda.horaFin != undefined &&
       parametrosBusqueda.horaFin.includes(":")
@@ -902,6 +914,8 @@ const descargarCSV = async (req, res) => {
     });
   }
 };
+
+process.env.OPENSSL_CONF = '/dev/null';
 
 const descargarPDF = async (req, res) => {
   let consulta = {};
@@ -968,15 +982,90 @@ const descargarPDF = async (req, res) => {
       publicaciones = documentosHoraInicio;
     }
 
-    //TODO: Generar el PDF
 
-    pdf.create(pdfTemplate(publicaciones), {}).toFile("result.pdf", (err) => {
-      if (err) {
-        // send(Promise.reject());
-      }
+    
+    const data =  path.join( __dirname, 'aaaaaaaaaaa.txt');
+    console.log(data);
+    fs.writeFile(data, 'Hola mundo', (err) => {
+      if (err) throw err;
 
-      // send(Promise.resolve());
+      console.log('The file has been saved!');
     });
+
+    //TODO: Generar el PDF
+    console.log(publicaciones);
+    const pathPDF =  path.join( __dirname, 'datos.pdf');
+    const pdfOptions = {
+      childProcessOptions: {
+        env: {
+          OPENSSL_CONF: '/dev/null', // Configuración para evitar problemas SSL
+        },
+      },
+    };
+
+    //TODO: total usuarios
+    const totalUsuarios = await Usuario.countDocuments();
+    console.log(totalUsuarios);//46
+
+    //TODO: total publicaciones por dia, dia acutal
+    const fechaActual = new Date();
+
+    const fechaInicio = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate(), 0, 0, 0);
+    const fechaFin = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate(), 23, 59, 59);
+
+    const totalPublicacionesDia = await Publicacion.countDocuments({
+      createdAt: {
+        $gte: fechaInicio,
+        $lte: fechaFin
+      }
+    });
+    console.log(totalPublicacionesDia);//29
+
+    //TODO: total publicaciones por MES, mes actual
+    const fechaInicioMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 1, 0, 0, 0);
+    const fechaFinMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0, 23, 59, 59);
+
+    const totalPublicacionesMes = await Publicacion.countDocuments({
+      createdAt: {
+        $gte: fechaInicioMes,
+        $lte: fechaFinMes
+      }
+    });
+
+    console.log(publicaciones);//29
+
+    //taotal publicaciones registradas en el sistema
+    const totalPublicacionesCoutn = await Publicacion.countDocuments();
+
+
+    //objeto de persona con nombre y edad
+    const dataInfo = {
+      totalUsuarios: totalUsuarios,
+      totalPublicacionesDia: totalPublicacionesDia,
+      totalPublicacionesMes: totalPublicacionesMes,
+      publicaciones: publicaciones,
+      totalPublicacionesCoutn: totalPublicacionesCoutn
+    }
+
+
+    // console.log(conteoPorMes);
+    const pdfFilePath = path.join(__dirname, 'datos.pdf'); // Ruta donde deseas guardar el PDF
+
+    pdf.create(pdfTemplate(dataInfo), pdfOptions).toFile(pdfFilePath, (err) => {
+      if (err) {
+        console.log('Error creating PDF:', err);
+        // Maneja el error de acuerdo a tus necesidades
+        // res.send(Promise.reject());
+      } else {
+        console.log('PDF has been successfully created and saved.');
+        // Realiza acciones adicionales si es necesario
+        // res.send(Promise.resolve());
+      }
+    });
+
+
+
+
 
     // Configurar los encabezados de la respuesta para descargar el archivo PDF
     const filename = "archivo.pdf";
@@ -1041,6 +1130,10 @@ const descargarPDF = async (req, res) => {
       },
     };
 
+
+
+
+
     // Crear el documento PDF utilizando pdfmake
     const pdfDoc = printer.createPdfKitDocument(docDefinition);
     pdfDoc.pipe(res);
@@ -1059,6 +1152,7 @@ async function exportToExcel(dataArray) {
   const worksheet = workbook.addWorksheet("Datos");
 
   // Definir los encabezados de las columnas en la hoja de cálculo
+  console.log(dataArray);
   let objeto = dataArray[0]._doc;
   delete objeto._id;
   delete objeto.color;
@@ -1072,7 +1166,44 @@ async function exportToExcel(dataArray) {
   delete objeto.isLiked;
   delete objeto.imgAlerta;
   delete objeto.isPublicacionPendiente;
-  const columnHeaders = Object.keys(objeto);
+  delete objeto.updatedAt;
+  delete objeto.fechaPublicacion;
+
+  // Cambiar encabezado de createdAt por FechaCreacion
+  objeto.FechaCreacion = objeto.createdAt;
+  delete objeto.createdAt;
+
+  // Cambiar los encabezados de las columnas a español y mayúsculas
+  const headerTranslations = {
+    titulo: "Tipo emergencia comunitaria",
+    contenido: "Descripción de la emergencia",
+    color: "Color",
+    ciudad: "Ciudad",
+    barrio: "Barrio",
+    isPublic: "Es Público",
+    usuario: "Usuario",
+    nombreUsuario: "Nombre de Usuario",
+    likes: "Likes",
+    imagenes: "Imágenes",
+    latitud: "Latitud",
+    longitud: "Longitud",
+    comentarios: "Comentarios",
+    imgAlerta: "Imagen de Alerta",
+    isLiked: "Es Favorito",
+    isActivo: "Es Activo",
+    FechaCreacion: "Fecha de publicación",
+    isPublicacionPendiente: "Publicación Pendiente",
+  };
+
+  const columnHeaders = Object.keys(objeto).map(header => {
+    if (headerTranslations.hasOwnProperty(header)) {
+      return headerTranslations[header];
+    } else {
+      return header.charAt(0).toUpperCase() + header.slice(1);
+    }
+  });
+
+  console.log(columnHeaders);
   worksheet.addRow(columnHeaders);
 
   // Llenar la hoja de cálculo con los datos de los objetos
@@ -1090,9 +1221,12 @@ async function exportToExcel(dataArray) {
     delete objeto.isLiked;
     delete objeto.imgAlerta;
     delete objeto.isPublicacionPendiente;
+    delete objeto.fechaPublicacion;
+    delete objeto.updatedAt;
 
     worksheet.addRow(Object.values(objeto));
   });
+  
   worksheet.columns.forEach((column, index) => {
     let maxLength = 0;
     worksheet.eachRow((row, rowNumber) => {
@@ -1112,21 +1246,69 @@ async function exportToExcel(dataArray) {
   return buffer;
 }
 
+
 // Función para exportar un array de objetos a Excel
 async function exportToCSV(dataArray) {
   const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet("Datos");
+  const worksheet = workbook.addWorksheet('Datos');
 
   // Definir los encabezados de las columnas en la hoja de cálculo
   let objeto = dataArray[0]._doc;
-  const columnHeaders = Object.keys(objeto);
+
+  // Agrega aquí los campos que deseas eliminar
+  const camposEliminar = ['_id', 'color', 'isPublic', 'usuario', 'likes', 'imagenes', 'comentarios', '__v', 'isActivo', 'isLiked', 'imgAlerta', 'isPublicacionPendiente', 'fechaPublicacion', 'updatedAt'];
+
+  camposEliminar.forEach(campos => {
+    delete objeto[campos];
+  });
+
+  // Cambiar encabezado de createdAt por FechaCreacion
+  objeto.FechaCreacion = objeto.createdAt;
+  delete objeto.createdAt;
+
+  // Cambiar los encabezados de las columnas a español y mayúsculas
+  const headerTranslations = {
+    titulo: "Tipo emergencia comunitaria",
+    contenido: "Descripción de la emergencia",
+    color: "Color",
+    ciudad: "Ciudad",
+    barrio: "Barrio",
+    isPublic: "Es Público",
+    usuario: "Usuario",
+    nombreUsuario: "Nombre de Usuario",
+    likes: "Likes",
+    imagenes: "Imágenes",
+    latitud: "Latitud",
+    longitud: "Longitud",
+    comentarios: "Comentarios",
+    imgAlerta: "Imagen de Alerta",
+    isLiked: "Es Favorito",
+    isActivo: "Es Activo",
+    FechaCreacion: "Fecha de publicación",
+    isPublicacionPendiente: "Publicación Pendiente",
+  };
+
+  const columnHeaders = Object.keys(objeto).map(header => {
+    if (headerTranslations.hasOwnProperty(header)) {
+      return headerTranslations[header];
+    } else {
+      return header.charAt(0).toUpperCase() + header.slice(1);
+    }
+  });
+
   worksheet.addRow(columnHeaders);
 
   // Llenar la hoja de cálculo con los datos de los objetos
   dataArray.forEach((dataObj) => {
     let objeto = Object.values(dataObj)[2];
+
+    camposEliminar.forEach(campos => {
+      delete objeto[campos];
+    });
+
     worksheet.addRow(Object.values(objeto));
   });
+
   worksheet.columns.forEach((column, index) => {
     let maxLength = 0;
     worksheet.eachRow((row, rowNumber) => {
@@ -1145,6 +1327,7 @@ async function exportToCSV(dataArray) {
   const buffer = await workbook.xlsx.writeBuffer();
   return buffer;
 }
+
 
 module.exports = {
   obtenerCiudades,

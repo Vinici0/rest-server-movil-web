@@ -157,7 +157,7 @@ const mostrarImagenUsuario = async (req, res = response) => {
     );
     
     if (fs.existsSync(pathImagen)) {
-      return res.sendFile(pathImagen);
+      return res.sendFile(pathImagen);//S
     }
   }
 

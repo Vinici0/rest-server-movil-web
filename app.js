@@ -4,17 +4,13 @@ const cors = require("cors");
 const fileUpload = require('express-fileupload');
 require("dotenv").config();
 
-// DB Config
 require("./database/config").dbConnection();
 
-// App de Express
 const app = express();
 app.use(cors());
 
-// Lectura y parseo del Body
 app.use(express.json());
 
-// Node Server
 const server = require("http").createServer(app);
 module.exports.io = require("socket.io")(server);
 require("./sockets/socket");
@@ -29,7 +25,6 @@ app.use(
   })
 );
 
-// Mis Rutas
 app.use("/api/buscar", require("./routes/buscar"));
 app.use("/api/comentarios", require("./routes/comentarios"));
 app.use("/api/login", require("./routes/auth"));
@@ -43,7 +38,6 @@ app.use("/api/reportes", require("./routes/reportes"));
 app.use("/api/notificacion", require("./routes/notificaciones"));
 app.use("/api/denuncias", require("./routes/denuncias"));
 app.use("/api/documents", require("./routes/documents"));
-
 
 module.exports = {
   app,

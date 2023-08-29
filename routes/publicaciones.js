@@ -9,6 +9,8 @@ const {
   likePublicacion,
   guardarListArchivo,
   isPublicacionFinalizada,
+  deletePublicacion,
+  actualizarDescripcion,
 } = require("../controllers/publicaciones");
 const { validarCampos } = require("../middlewares/validar-campos");
 const { validacionesCrearPublicacion } = require("../middlewares/express-validator");
@@ -18,7 +20,6 @@ const router = Router();
 router.get("/", validarJWT, obtenerPublicacionesUsuario);
 
 router.get("/cercanas", validarJWT, getPublicacionesEnRadio);
-
 
 router.put("/like2/:id", validarJWT, likePublicacion);
 
@@ -31,5 +32,9 @@ router.post("/listaArchivos/:uid/:titulo",validarCampos, guardarListArchivo);
 router.put("/like", validarJWT, updatePublicacion);
 
 router.put("/marcar-publicacion-pendiente-false/:publicacionId", validarJWT, isPublicacionFinalizada);
+
+router.delete("/:id", validarJWT, deletePublicacion);
+
+router.put("/actualizarDescripcion/:id", validarJWT, actualizarDescripcion);
 
 module.exports = router;

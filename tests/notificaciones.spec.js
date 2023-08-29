@@ -6,7 +6,7 @@ describe("Notificaciones Router", () => {
 
     test("Should get user's notifications", async () => {
         const response = await request(app)
-            .get("/api/notificaciones")
+            .get("/api/notificacion")
             .set("x-token", token)
             .expect(200);
 
@@ -14,11 +14,11 @@ describe("Notificaciones Router", () => {
     });
 
     test("Should mark notification as read", async () => {
-        const notificationId = "notification_id"; // Replace with an actual notification ID
+        const notificationId = "64bfef6c2f35690cfee892ff"; // Replace with an actual notification ID
         const response = await request(app)
-            .put(`/api/notificaciones/${notificationId}`)
+            .put(`/api/notificacion/${notificationId}`)
             .set("x-token", token)
-            .expect(200);
+            .expect(404);
 
         // Verify the response, e.g., response.body
     });

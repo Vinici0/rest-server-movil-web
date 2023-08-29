@@ -94,6 +94,7 @@ const guardarPublicacion = async (req, res) => {
     //TODO: Notificar a los usuarios en el radio
     const publicacion2 = publicacion.toObject();
     publicacion2.type = "publication";
+    console.log(publicacion2);
     delete publicacion2.__v;
     await enviarNotificacion(tokens, titulo, contenido, publicacion2);
 
@@ -411,6 +412,42 @@ const isPublicacionFinalizada = async (req, res) => {
   }
 };
 
+//delete publicacion
+const deletePublicacion = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await Publicacion.findByIdAndDelete(id);
+    // await Publicacion.findByIdAndUpdate(id, { isActivo: false });
+    res.status(200).json({ message: "Publicación eliminada con éxito" });
+  } catch (error) { 
+    res.status(500).json({ message: "Error al eliminar la publicación" });
+  }
+};
+
+const actualizarDescripcion = async (req, res) => {
+  const { id } = req.params;
+  const { descripcion } = req.body;
+
+  try {
+    if (!descripcion) {
+      return res.status(400).json({ mensaje: "La descripción es obligatoria" });
+    }
+
+    //actualizar
+      await Publicacion.findByIdAndUpdate(id, { contenido: descripcion });  
+
+    res.json({
+      ok: true,
+      mensaje: "Descripción actualizada con éxito",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      mensaje: "Error inesperado",
+    });
+  }
+};
 
 
 module.exports = {
@@ -424,4 +461,6 @@ module.exports = {
   obtenerPublicacionesUsuarioConLikes,
   guardarListArchivo,
   isPublicacionFinalizada,
+  deletePublicacion,
+  actualizarDescripcion
 };
