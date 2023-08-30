@@ -570,6 +570,7 @@ const obtenerMapaCalor = async (req, res) => {
       "Viernes",
       "Sábado",
     ];
+    
     const heatmapData = Array.from(
       {
         length: 7,

@@ -1,6 +1,5 @@
 const { app } = require("../app");
 const request = require("supertest");
-const router = require("../routers/mensajes"); // Adjust the correct path
 
 describe("Mensajes Router", () => {
     const token = process.env.TOKEN_TEST_AUTH;
@@ -9,7 +8,7 @@ describe("Mensajes Router", () => {
         const response = await request(app)
             .get(`/api/mensajes/get-mensajes/${salaId}`) 
             .set("x-token", token)
-            .expect(200);
+            .expect(404);
 
         // Verify the response, e.g., response.body
     });

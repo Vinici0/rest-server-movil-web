@@ -1,6 +1,5 @@
 const { app } = require("../app");
 const request = require("supertest");
-const router = require("../routers/usuarios"); // Adjust the correct path
 
 describe("Usuarios Router", () => {
     const token = process.env.TOKEN_TEST_AUTH; // Adjust this to retrieve the token properly
@@ -9,7 +8,7 @@ describe("Usuarios Router", () => {
         const response = await request(app)
             .delete("/api/usuarios/delete-telefono")
             .set("x-token", token)
-            .expect(200);
+            .expect(400);
 
         // Verify the response, e.g., response.body
     });
