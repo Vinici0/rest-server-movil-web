@@ -38,3 +38,4 @@ router.delete("/:id", validarJWT, deletePublicacion);
 router.put("/actualizarDescripcion/:id", validarJWT, actualizarDescripcion);
 
 module.exports = router;
+

@@ -43,13 +43,14 @@ const crearUsuario = async (req, res = response) => {
 };
 const login = async (req, res = response) => {
   const { email, password, tokenApp } = req.body;
-
-
+  console.log(req.body);
   try {
-    const usuarioDB = await Usuario.findOne({ email }).populate(
-      "ubicaciones",
-      "latitud longitud ciudad pais barrio updatedAt createdAt estado _id"
-    ).exec();
+    const usuarioDB = await Usuario.findOne({ email })
+      .populate(
+        "ubicaciones",
+        "latitud longitud ciudad pais barrio updatedAt createdAt estado _id"
+      )
+      .exec();
     if (!usuarioDB) {
       return res.status(404).json({
         ok: false,
@@ -68,7 +69,7 @@ const login = async (req, res = response) => {
 
     // Actualizar el token de dispositivo si se proporciona
     if (tokenApp) {
-      await Usuario.findOneAndUpdate({ email }, { tokenApp });//b
+      await Usuario.findOneAndUpdate({ email }, { tokenApp }); 
     }
 
     // Generar el JWT
@@ -133,7 +134,7 @@ const googleAuth = async (req, res = response) => {
       usuarioDB.tokenApp = tokenApp;
       await usuarioDB.save();
     }
-    
+
     // Generar el JWT
     const token = await generarJWT(usuarioDB.id);
 
@@ -193,8 +194,6 @@ const renewToken = async (req, res = response) => {
     });
   }
 };
-
-
 
 module.exports = {
   crearUsuario,
